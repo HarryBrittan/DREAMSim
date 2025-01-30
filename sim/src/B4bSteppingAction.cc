@@ -213,6 +213,14 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   aHit.y = posA.y() / cm;
   aHit.z = posA.z() / cm;
   aHit.pid = pdgcode;
+  // if (fabs(pdgcode) > 1e9)
+  //{
+  //   // https://indico.ph.tum.de/event/3955/sessions/752/attachments/2741/3099/Day3_Physics.pdf
+  //   // larger than 1e9 is nuclei, ion, or excited state of atoms and nuclei
+  //   // e.g., 1000020040 is alpha, 1000010020 is deuteron, 100ZZZAAAI* is
+  //   // *ZZZ=proton number, AAA=nucleon number, I=excitation level
+  //   std::cout << "pdgcode " << pdgcode << "  mass " << mass << "  kinEnergy " << kinEnergy << std::endl;
+  // }
   aHit.calotype = caloType;
   aHit.trackid = track->GetTrackID();
   aHit.globaltime = track->GetGlobalTime() / ns;
