@@ -479,17 +479,16 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
 
     // creating fibers solids
     // G4cout << "r_clad= " << clad_C_rMax << " r_coreC=" << core_C_rMax << " r_coreS=" << core_S_rMax << G4endl;
-    auto fiber = new G4Tubs("Fiber", 0, clad_N_rMax, fiberLength / 2., 0 * deg, 360. * deg); // S is the same
-    
+    auto fiber = new G4Tubs("Fiber", 0, clad_C_rMax, fiberLength / 2., 0 * deg, 360. * deg); // S is the same
+    auto nfiber = new G4Tubs("nFiber", 0, clad_N_rMax, fiberLength / 2., 0 * deg, 360. * deg); 
+
     //auto fiber = new G4Tubs("Fiber", 0, clad_C_rMax, fiberLength / 2., 0 * deg, 360. * deg); // S is the same
     auto fiberC = new G4Tubs("fiberC", 0, core_C_rMax, fiberLength / 2., 0 * deg, 360. * deg);
     auto fiberS = new G4Tubs("fiberS", 0, core_S_rMax, fiberLength / 2., 0 * deg, 360. * deg);
 
     auto fiberCLog = new G4LogicalVolume(fiber, clad_C_Material, "fiberCladC");
     auto fiberSLog = new G4LogicalVolume(fiber, clad_S_Material, "fiberCladS");
-    auto fiberNLog = new G4LogicalVolume(fiber, clad_N_Material, "fiberCladN");
-
-
+    auto fiberNLog = new G4LogicalVolume(nfiber, clad_N_Material, "fiberCladN");
     G4LogicalVolume *fiberCoreCLog = new G4LogicalVolume(fiberC, core_C_Material, "fiberCoreC");
     G4LogicalVolume *fiberCoreSLog = new G4LogicalVolume(fiberS, core_S_Material, "fiberCoreS");
 
@@ -499,7 +498,9 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     double R = clad_N_rMax * 2.0 + 0.01; // 10 micron gap between cenral and peripheral fibers
     double cx1 = R * cos(30.0 * deg);
     double cy1 = R * sin(30.0 * deg);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberCLog, "fiberCladC", holeLV, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberCLog, "fiberCladC", fiberNLog, false, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberNLog, "fiberCladN", holeLV, false, 0, fCheckOverlaps);
+
     // new G4PVPlacement(0, G4ThreeVector(cx1, cy1, 0.0), fiberCLog, "fiberCladC", holeLV, false, 1, fCheckOverlaps);
     // new G4PVPlacement(0, G4ThreeVector(-cx1, cy1, 0.0), fiberCLog, "fiberCladC", holeLV, false, 2, fCheckOverlaps);
     // new G4PVPlacement(0, G4ThreeVector(0., -R, 0.), fiberCLog, "fiberCladC", holeLV, false, 3, fCheckOverlaps);
@@ -533,8 +534,8 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     rodLV->SetVisAttributes(new G4VisAttributes(FALSE, G4Colour(0.0, 0.0, 0.0, 0.6)));   // blue
     // holeLV->SetVisAttributes(new G4VisAttributes(FALSE,G4Colour(1.0,1.0,1.0))); // black
     holeLV->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(1.0, 1.0, 1.0, 0.5))); // white
-    fiberNLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 1.0, 0.5, 0.9))); // green
-    fiberCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.8, 0.5, 0.8, 0.9)));
+    fiberNLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0, .7, 0, 0.5))); 
+    fiberCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.8, 1.0, 0.8, 0.5)));
     fiberCoreCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.98, 0.5, 0.98, 0.9)));
     fiberSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.5, 0.8, 0.9)));       // red
     fiberCoreSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.98, 0.98, 0.9))); // red
