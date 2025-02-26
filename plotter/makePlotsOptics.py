@@ -4,7 +4,7 @@ import sys
 sys.path.append("./CMSPLOTS")
 from myFunction import DrawHistos
 
-doOP = False
+doOP = True
 
 print("Starting")
 
@@ -68,6 +68,14 @@ for part, _ in loops:
     rdfs[part] = rdfs[part].Define("OP_time_per_meter_cosTheta_produced", "OP_time_per_meter * OP_cosTheta_produced")
     rdfs[part] = rdfs[part].Define("OP_pos_produced_r", "sqrt(OP_pos_produced_x*OP_pos_produced_x + OP_pos_produced_y*OP_pos_produced_y)")
     rdfs[part] = rdfs[part].Define("OP_pos_final_r", "sqrt(OP_pos_final_x*OP_pos_final_x + OP_pos_final_y*OP_pos_final_y)")
+
+    # Get the number of entries in OP_time_final
+    nEntries_OP_time_final = rdfs[part].Count().GetValue()
+    
+    # Define OP_time_final_normalized
+    rdfs[part] = rdfs[part].Define("OP_time_final_normalized", f"OP_time_final / {nEntries_OP_time_final}")
+
+
     
     # cladding and core
     rdfs[part] = rdfs[part].Define("OP_pos_produced_core", "OP_pos_produced_r < 0.039")
@@ -76,6 +84,7 @@ for part, _ in loops:
     rdfs[part] = rdfs[part].Define("OP_pos_final_core", "OP_pos_final_r < 0.039")
     rdfs[part] = rdfs[part].Define("OP_pos_final_clad", "OP_pos_final_r > 0.039 && OP_pos_final_r < 0.040")
     rdfs[part] = rdfs[part].Define("OP_pos_final_out", "OP_pos_final_r > 0.040")
+    
     
     # sinAlpha
     # the angle between the momentum and the radial vector
@@ -105,9 +114,11 @@ for part, rdf in rdfs.items():
     histos['nOPs'][part] = rdf.Histo1D(
         ("nOPs" + suffix, "nOPs", 100, 0, 10000), "nOPs")
     histos['OP_time_produced'][part] = rdf.Histo1D(
-        ("OP_time_produced" + suffix, "OP_time_produced", 100, 0, t_range), "OP_time_produced", "eWeight")
+        ("OP_time_produced" + suffix, "OP_time_produced", 70, 0, .15), "OP_time_produced", "eWeight")
     histos['OP_time_final'][part] = rdf.Histo1D(
         ("OP_time_final" + suffix, "OP_time_final", 100, 0, t_range), "OP_time_final", "eWeight")
+    histos['OP_time_final_normalized'][part] = rdf.Histo1D(
+        ("OP_time_final_normalized" + suffix, "OP_time_final_normalized", 200, 0, 0.002), "OP_time_final_normalized", "eWeight")
     histos['OP_time_delta'][part] = rdf.Histo1D(
         ("OP_time_delta" + suffix, "OP_time_delta", 100, 0, t_range), "OP_time_delta", "eWeight")
     histos["OP_pos_delta_z"][part] = rdf.Histo1D(
@@ -206,10 +217,11 @@ args = {
     'donormalize': False
 }
 
+
 print("Drawing")
 
 DrawHistos(list(histos['nOPs'].values()), list(histos['nOPs'].keys(
-)), 0, 10000, "Number of OPs", 1e-1, 1e4, "Fraction of OPs", "nOPs", **args)
+)), 0, 110000, "Number of OPs", 1e-1, 1e4, "Fraction of OPs", "nOPs", **args)
 DrawHistos(list(histos['OP_time_produced'].values()), list(histos['OP_time_produced'].keys(
 )), 0, t_range, "Time [ns]", 1e-1, 1e7, "Fraction of OPs", "OP_time_produced", **args)
 DrawHistos(list(histos['OP_time_final'].values()), list(histos['OP_time_final'].keys(
@@ -257,6 +269,28 @@ DrawHistos(h_ratios_cosTheta + h_ratios_cosTheta_clad + h_ratios_cosTheta_core, 
 h_ratios_r = GetRatio(histos, "OP_pos_produced_r")
 DrawHistos(h_ratios_r, ["ele", "pion"], 0, 0.04, "r [cm]", 0.0, 0.4, "OP Trapping Rate", "OP_pos_produced_r_ratio", **{**args, 'dology': False})
 DrawHistos(h_ratios_r, ["ele", "pion"], 0, 0.04, "r [cm]", 1e-4, 1e2, "OP Trapping Rate", "OP_pos_produced_r_ratio_log", **args)
+
+output_file = ROOT.TFile("multiclad_output.root", "RECREATE")
+for part in rdfs.keys():
+    histos['OP_time_produced'][part].Write()
+    histos['OP_time_final'][part].Write()
+    histos['OP_pos_produced_r'][part].Write()
+    histos['OP_cosTheta_produced'][part].Write()
+    histos['OP_cosTheta_produced_total'][part].Write()
+    histos['OP_time_per_meter_vs_cosTheta_produced'][part].Write()
+    histos['OP_sinAlpha_vs_r_produced'][part].Write()
+    histos['OP_sinAlpha_vs_r_produced_total'][part].Write()
+    histos['OP_mom_produced_x_vs_y'][part].Write()
+    histos['OP_mom_final_x_vs_y'][part].Write()
+    histos["OP_pos_final_x_vs_y"][part].Write()
+    histos["OP_pos_produced_x_vs_y"][part].Write()
+    histos['OP_time_final_normalized'][part].Write()
+    histos['OP_time_delta'][part].Write()
+h_ratios_r[0].Write()
+h_ratios_cosTheta[0].Write()
+h_ratios_cosTheta_clad[0].Write()
+h_ratios_cosTheta_core[0].Write()
+
 
 def makeArrowPlots(hprof2d_x, hprof2d_y, min_entries=1, min_value= 1e-10, scale = 1e7):
     # assumes hprof2d_x and hprof2d_y have same binning
@@ -362,5 +396,6 @@ for part in rdfs.keys():
                    "px [GeV/c]", -px_range, px_range, "py [GeV/c]", f"event_{i}_OP_mom_produced_x_vs_y_{part}", **args)
         DrawHistos([histos[f"event_{i}_OP_mom_final_x_vs_y"][part]], [], -px_range, px_range,
                    "px [GeV/c]", -px_range, px_range, "py [GeV/c]", f"event_{i}_OP_final_x_vs_y_{part}", **args)
-
+hratio_x_vs_y.Write()
+output_file.Close()
 print("Done")
