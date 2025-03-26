@@ -266,6 +266,8 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("OP_pol_x", &mP_pol_x);
   tree->Branch("OP_pol_y", &mP_pol_y);
   tree->Branch("OP_pol_z", &mP_pol_z);
+
+  tree->Branch("zPos_in_air", &mP_z_positions_air);
 }
 
 // ########################################################################
@@ -418,6 +420,10 @@ void CaloTree::EndEvent()
   //   analyze this event.
   analyze();
 }
+void CaloTree::AddPhotonZPosition(double zPosition) {
+  mP_z_positions_air.push_back(zPosition);
+}
+
 
 // ########################################################################
 void CaloTree::EndJob()
@@ -546,6 +552,8 @@ void CaloTree::clearCaloTree()
   mP_pol_x.clear();
   mP_pol_y.clear();
   mP_pol_z.clear();
+
+  mP_z_positions_air.clear();
 
   photonData.clear();
 }

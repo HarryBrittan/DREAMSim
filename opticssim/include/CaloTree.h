@@ -42,6 +42,7 @@ public:
   void accumulateEnergy(double eleak, int type);
   void saveBeamXYZPxPyPzE(string, int, double, double, double, double, double, double, double);
 
+  void AddPhotonZPosition(double zPosition);
   // for histogrming...
   std::string title;
   std::map<std::string, TH1D *> histo1D;
@@ -61,6 +62,7 @@ private:
   //
   void clearCaloTree();
   void analyze();
+  
 
   map<int, double> make2Dhits(map<int, double> hits);
   void defineCSV(string type);
@@ -154,6 +156,7 @@ private:
   vector<double> m_edepbirktruth;
   vector<double> m_ncertruth;
   vector<double> m_ncercaptruth;
+  vector<double> mP_z_positions_air; //to store the z positions of the photons in air
 
   double m_eCalotruth;
   double m_eWorldtruth;

@@ -68,14 +68,17 @@ for part, _ in loops:
     rdfs[part] = rdfs[part].Define("OP_time_per_meter_cosTheta_produced", "OP_time_per_meter * OP_cosTheta_produced")
     rdfs[part] = rdfs[part].Define("OP_pos_produced_r", "sqrt(OP_pos_produced_x*OP_pos_produced_x + OP_pos_produced_y*OP_pos_produced_y)")
     rdfs[part] = rdfs[part].Define("OP_pos_final_r", "sqrt(OP_pos_final_x*OP_pos_final_x + OP_pos_final_y*OP_pos_final_y)")
-
-    # Get the number of entries in OP_time_final
-    nEntries_OP_time_final = rdfs[part].Count().GetValue()
     
-    # Define OP_time_final_normalized
-    rdfs[part] = rdfs[part].Define("OP_time_final_normalized", f"OP_time_final / {nEntries_OP_time_final}")
+    for i,f in [(0,13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        rdfs[part] = rdfs[part].Define(f"eWeight_time_between_{i_str}_and_{f_str}_ns", f"eWeight * ((OP_time_final - OP_time_produced) > {i} && (OP_time_final - OP_time_produced) < {f})")
 
-
+    # OPs produced in fiber
+    rdfs[part] = rdfs[part].Define("eWeightFiber", "eWeight * (OP_pos_final_r < 0.040)")
+    for loc in [49.5, 50.00, 50.5, 51.00, 51.5, 52.00, 52.5]:
+        loc_str = str(loc).replace(".", "_")
+        rdfs[part] = rdfs[part].Define(f"OP_pos_final_{loc_str}", f"OP_pos_final_z > {loc} && OP_pos_final_z < {loc + 0.5}")
     
     # cladding and core
     rdfs[part] = rdfs[part].Define("OP_pos_produced_core", "OP_pos_produced_r < 0.039")
@@ -117,10 +120,10 @@ for part, rdf in rdfs.items():
         ("OP_time_produced" + suffix, "OP_time_produced", 70, 0, .15), "OP_time_produced", "eWeight")
     histos['OP_time_final'][part] = rdf.Histo1D(
         ("OP_time_final" + suffix, "OP_time_final", 100, 0, t_range), "OP_time_final", "eWeight")
-    histos['OP_time_final_normalized'][part] = rdf.Histo1D(
-        ("OP_time_final_normalized" + suffix, "OP_time_final_normalized", 200, 0, 0.002), "OP_time_final_normalized", "eWeight")
+    #histos['OP_time_final_normalized'][part] = rdf.Histo1D(
+    #    ("OP_time_final_normalized" + suffix, "OP_time_final_normalized", 200, 0, 0.002), "OP_time_final_normalized", "eWeight")
     histos['OP_time_delta'][part] = rdf.Histo1D(
-        ("OP_time_delta" + suffix, "OP_time_delta", 100, 0, t_range), "OP_time_delta", "eWeight")
+        ("OP_time_delta" + suffix, "OP_time_delta", 100, 5, 12), "OP_time_delta", "eWeight")
     histos["OP_pos_delta_z"][part] = rdf.Histo1D(
         ("OP_pos_delta_z" + suffix, "OP_pos_delta_z", 100, 0, 100.0), "OP_pos_delta_z", "eWeight")
     histos["OP_time_per_meter"][part] = rdf.Histo1D(
@@ -143,6 +146,21 @@ for part, rdf in rdfs.items():
         ("OP_pos_produced_r" + suffix, "OP_pos_produced_r", 100, 0, 0.04), "OP_pos_produced_r", "eWeight")
     histos["OP_pos_produced_r_total"][part]  = rdf.Histo1D(
         ("OP_pos_produced_r_total" + suffix, "OP_pos_produced_r_total", 100, 0, 0.04), "OP_pos_produced_r", "eWeightTotal")
+
+    for i, f in [(0, 13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part] = rdf.Histo2D(
+            (f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns" + suffix, f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns", nx_bins, -x_range, x_range, nx_bins, -x_range, x_range), "OP_pos_produced_x", "OP_pos_produced_y", f"eWeight_time_between_{i_str}_and_{f_str}_ns")
+    
+    #histograms for photons in airvolume at differen z positions
+    for loc in [49.5, 50.00, 50.5, 51.00, 51.5, 52.00, 52.5]:
+        loc_str = str(loc).replace(".", "_")
+        histos[f"OP_pos_final_{loc_str}"][part] = rdf.Histo1D(
+            (f"OP_pos_final_{loc_str}" + suffix, f"OP_pos_final_{loc_str}", 50, 49, 53), f"OP_pos_final_{loc_str}", "eWeight")
+    histos["OP_pos_finalpassend"][part] = rdf.Histo1D(
+        ("OP_pos_finalpassend" + suffix, "OP_pos_finalpassend", 50, 49, 53), "OP_pos_final_z", "eWeightFiber")
+        
 
     histos["OP_pos_produced_x_vs_y"][part] = rdf.Histo2D(
         ("OP_pos_produced_x_vs_y" + suffix, "OP_pos_produced_x_vs_y", nx_bins, -x_range, x_range, nx_bins, -x_range, x_range), "OP_pos_produced_x", "OP_pos_produced_y", "eWeight")
@@ -284,7 +302,6 @@ for part in rdfs.keys():
     histos['OP_mom_final_x_vs_y'][part].Write()
     histos["OP_pos_final_x_vs_y"][part].Write()
     histos["OP_pos_produced_x_vs_y"][part].Write()
-    histos['OP_time_final_normalized'][part].Write()
     histos['OP_time_delta'][part].Write()
 h_ratios_r[0].Write()
 h_ratios_cosTheta[0].Write()
@@ -336,6 +353,19 @@ if doOP:
     scale = 2e4
     
 for part in rdfs.keys():
+    for i, f in [(0, 13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        DrawHistos([histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part]], [], -x_range, x_range,
+                   "x [cm]", -x_range, x_range, "y [cm]", f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns_{part}", **args)
+        
+    for loc in [49.5, 50.00, 50.5, 51.00, 51.5, 52.00, 52.5]:
+        loc_str = str(loc).replace(".", "_")
+        DrawHistos([histos[f"OP_pos_final_{loc_str}"][part]], [], 49, 53,
+                   "z [cm]", 0, 1, "Fraction of OPs", f"OP_pos_final_{loc_str}_{part}", **args)
+    DrawHistos([histos["OP_pos_finalpassend"][part]], [], 49, 53,
+               "passEnd", 0, 1, "Fraction of OPs", f"OP_pos_finalpassend_{part}", **args)
+
     DrawHistos([histos['OP_pos_produced_x_vs_y'][part]], [], -x_range, x_range,
                "x [cm]", -x_range, x_range, "y [cm]", f"OP_pos_produced_x_vs_y_{part}", **args)
     DrawHistos([histos['OP_pos_produced_x_vs_y_total'][part]], [], -x_range, x_range,

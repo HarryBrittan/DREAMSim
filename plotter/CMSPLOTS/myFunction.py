@@ -72,7 +72,7 @@ def Normalize(th1, option=0):
         th1.Scale(1.0/(th1.Integral(0, th1.GetNbinsX()+1)+1e-6))
     elif option == 1:
         th1.Scale(1.0/(th1.Integral()+1e-6))
-
+    return th1
 
 def ScaleWithWidth(th1):
     th1.Scale(1.0, "width")

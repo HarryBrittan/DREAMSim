@@ -54,6 +54,8 @@
 #include "G4SystemOfUnits.hh"
 
 #include "CaloTree.h"
+#include "G4OpticalSurface.hh"
+#include "G4LogicalBorderSurface.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -167,6 +169,9 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     double noLayers = 1;
     double layerThickness = rodSize;
     double noRods = 1;
+    double sipmwidth = 0.8 * mm;
+    double sipmheight = 0.8 * mm;
+    double sipmthickness = 2.0 * cm;
 
     double calorSizeX = rodSize * noRods;
     double calorSizeY = rodSize * noLayers;
@@ -174,7 +179,7 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
 
     double worldSizeX = 1.4 * calorSizeX;
     double worldSizeY = 1.4 * calorSizeY;
-    double worldSizeZ = 1.2 * calorSizeZ;
+    double worldSizeZ = 1.4 * calorSizeZ;
 
     double density;
     int ncomponentsbrass;
@@ -290,6 +295,28 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
         rodSize); // witdth of replica
 
     //
+    //Air Volume at production end of rod for photon detection
+    //
+    auto airVolumeS = new G4Box("AirVolume", sipmwidth / 2.0, sipmheight / 2.0, sipmthickness / 2.0);
+
+    auto airVolumeLV = new G4LogicalVolume(
+        airVolumeS,       // its solid
+        defaultMaterial,  // its material
+        "AirVolume");     // its name
+
+    auto airVolumePhys = new G4PVPlacement(
+        0,               // no rotation
+        G4ThreeVector(0, 0, calorSizeZ / 2.0 + sipmthickness / 2.0), // at positive end of detector
+        airVolumeLV,     // its logical volume
+        "AirVolume",     // its name
+        worldLV,           // its mother  volume
+        false,           // no boolean operation
+        0,               // copy number
+        fCheckOverlaps); // checking overlaps
+    
+    
+    
+    //
     // Hole in a Rod
     //
 
@@ -330,12 +357,12 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     pmma_clad->AddElement(H, natoms = 8);
     pmma_clad->AddElement(O, natoms = 2);
 
-    ///--- for new cladding (Cerenkov fibers) ---
-    G4Material *new_cladding =
-        new G4Material("New_Cladding", density = 1.43 * g / cm3, ncomponents = 2);
-    new_cladding->AddElement(C, 2);
-    new_cladding->AddElement(F, 2);
-    G4MaterialPropertiesTable *mpNS;
+    ///--- for new cladding (Scintillating) ---
+    // G4Material *new_cladding =
+    //     new G4Material("New_Cladding", density = 1.43 * g / cm3, ncomponents = 2);
+    // new_cladding->AddElement(C, 2);
+    // new_cladding->AddElement(F, 2);
+    // G4MaterialPropertiesTable *mpNS;
     ///--- for Cherenkov fiber core ---
     G4Material *pmma =
         new G4Material("PMMA", density = 1.19 * g / cm3, ncomponents = 3);
@@ -402,23 +429,49 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     fluorinatedPolymer->SetMaterialPropertiesTable(mpFS);
    
     // -- New Cladding --    
-    G4double RefractiveIndex_NewCladding[nEntries] =
-        {
-            1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37,
-            1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37,
-            1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37,
-            1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37,
-            1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37, 1.37
-        };
-    mpNS = new G4MaterialPropertiesTable();
-    mpNS->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_NewCladding, nEntries);
+    // G4double RefractiveIndex_NewCladding[nEntries] =
+    //     {
+    //         1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42,
+    //         1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42,
+    //         1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42,
+    //         1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42,
+    //         1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42, 1.42
+    //     };
+    // mpNS = new G4MaterialPropertiesTable();
+    // mpNS->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_NewCladding, nEntries);
 
-    G4double Absorption_NewCladding[nEntries];
-    std::fill_n(Absorption_NewCladding, nEntries, 10.0 * m);
-    mpNS->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_NewCladding, nEntries);
+    // G4double Absorption_NewCladding[nEntries];
+    // std::fill_n(Absorption_NewCladding, nEntries, 10.0 * m);
+    // mpNS->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_NewCladding, nEntries);
 
-    new_cladding->SetMaterialPropertiesTable(mpNS);
+    // new_cladding->SetMaterialPropertiesTable(mpNS);
     
+    // -- Air Volume --
+    // Define the refractive index for air
+    G4MaterialPropertiesTable* airMPT = new G4MaterialPropertiesTable();
+    G4double airRefractiveIndex[nEntries];
+    std::fill_n(airRefractiveIndex, nEntries, 1.0); // Refractive index of air is approximately 1.0
+    airMPT->AddProperty("RINDEX", PhotonEnergy, airRefractiveIndex, nEntries);
+    defaultMaterial->SetMaterialPropertiesTable(airMPT);
+
+    // Define the optical surface between the fiber and the air volume
+    // G4OpticalSurface* fiberAirSurface = new G4OpticalSurface("FiberAirSurface");
+    // fiberAirSurface->SetType(dielectric_dielectric);
+    // fiberAirSurface->SetFinish(polished);
+    // fiberAirSurface->SetModel(unified);
+
+    // // Define the properties of the optical surface
+    // G4MaterialPropertiesTable* fiberAirSurfaceMPT = new G4MaterialPropertiesTable();
+    // G4double reflectivity[nEntries];
+    // std::fill_n(reflectivity, nEntries, 0.0); // No reflection, all transmission
+
+    // G4double efficiency[nEntries];
+    // std::fill_n(efficiency, nEntries, 1.0);   // 100% efficiency
+    // fiberAirSurfaceMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity, nEntries);
+    // fiberAirSurfaceMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, nEntries);
+    // fiberAirSurface->SetMaterialPropertiesTable(fiberAirSurfaceMPT);
+    
+
     // -- Polystyrene --
     G4double RefractiveIndex_Polystyrene[nEntries] =
         {
@@ -438,10 +491,11 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     //---Materials for Cerenkov fiber---
     G4Material *clad_C_Material = fluorinatedPolymer;
     G4Material *core_C_Material = pmma;
-    G4Material *clad_N_Material = new_cladding;
+    
     //---Materials for Scintillation fiber---
     G4Material *clad_S_Material = pmma_clad;
     G4Material *core_S_Material = polystyrene;
+    //G4Material *clad_N_Material = new_cladding;
 
     // Parameters for fibers
     double clad_C_rMin = 0.39 * mm;       // cladding cherenkov minimum radius
@@ -451,8 +505,8 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     //  double clad_C_Dphi = 2. * M_PI;       // cladding chrenkov max rotation
     
     // Parameters for new cladding 
-    double clad_N_rMin = 0.40 * mm;       //  new cladding cherenkov minimum radius
-    double clad_N_rMax = 0.41 * mm;       // new cladding cherenkov max radius
+    double clad_N_rMin = 0.40 * mm;       //  new cladding Scintillating minimum radius
+    double clad_N_rMax = 0.41 * mm;       // new cladding Scintillating max radius
     double clad_N_Dz = fiberLength / 2.0;
 
     double core_C_rMin = 0. * mm;
@@ -480,7 +534,7 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     // creating fibers solids
     // G4cout << "r_clad= " << clad_C_rMax << " r_coreC=" << core_C_rMax << " r_coreS=" << core_S_rMax << G4endl;
     auto fiber = new G4Tubs("Fiber", 0, clad_C_rMax, fiberLength / 2., 0 * deg, 360. * deg); // S is the same
-    auto nfiber = new G4Tubs("nFiber", 0, clad_N_rMax, fiberLength / 2., 0 * deg, 360. * deg); 
+    // auto nfiber = new G4Tubs("nFiber", 0, clad_N_rMax, fiberLength / 2., 0 * deg, 360. * deg); 
 
     //auto fiber = new G4Tubs("Fiber", 0, clad_C_rMax, fiberLength / 2., 0 * deg, 360. * deg); // S is the same
     auto fiberC = new G4Tubs("fiberC", 0, core_C_rMax, fiberLength / 2., 0 * deg, 360. * deg);
@@ -488,25 +542,31 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
 
     auto fiberCLog = new G4LogicalVolume(fiber, clad_C_Material, "fiberCladC");
     auto fiberSLog = new G4LogicalVolume(fiber, clad_S_Material, "fiberCladS");
-    auto fiberNLog = new G4LogicalVolume(nfiber, clad_N_Material, "fiberCladN");
+    // auto fiberNLog = new G4LogicalVolume(nfiber, clad_N_Material, "fiberCladN");
     G4LogicalVolume *fiberCoreCLog = new G4LogicalVolume(fiberC, core_C_Material, "fiberCoreC");
     G4LogicalVolume *fiberCoreSLog = new G4LogicalVolume(fiberS, core_S_Material, "fiberCoreS");
 
-    new G4PVPlacement(0, G4ThreeVector(0, 0, 0), fiberCoreCLog, "fiberCoreCherePhys", fiberCLog, false, 0, fCheckOverlaps);
-    // new G4PVPlacement(0, G4ThreeVector(0, 0, 0), fiberCoreSLog, "fiberCoreScintPhys", fiberSLog, false, 0, fCheckOverlaps);
+
+    // Apply the optical surface to the logical volumes
+    auto fiberSPhys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), fiberSLog, "fiberCladS", holeLV, false, 2, fCheckOverlaps);
+    //new G4LogicalBorderSurface("FiberAirSurface", fiberSPhys, airVolumePhys, fiberAirSurface);
+
+
+    // new G4PVPlacement(0, G4ThreeVector(0, 0, 0), fiberCoreCLog, "fiberCoreCherePhys", fiberCLog, false, 0, fCheckOverlaps);
+     new G4PVPlacement(0, G4ThreeVector(0, 0, 0), fiberCoreSLog, "fiberCoreScintPhys", fiberSLog, false, 0, fCheckOverlaps);
 
     double R = clad_N_rMax * 2.0 + 0.01; // 10 micron gap between cenral and peripheral fibers
     double cx1 = R * cos(30.0 * deg);
     double cy1 = R * sin(30.0 * deg);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberCLog, "fiberCladC", fiberNLog, false, 0, fCheckOverlaps);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberNLog, "fiberCladN", holeLV, false, 0, fCheckOverlaps);
+    // new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberCLog, "fiberCladC", fiberNLog, false, 0, fCheckOverlaps);
+    //new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), fiberNLog, "fiberCladN", holeLV, false, 0, fCheckOverlaps);
 
     // new G4PVPlacement(0, G4ThreeVector(cx1, cy1, 0.0), fiberCLog, "fiberCladC", holeLV, false, 1, fCheckOverlaps);
     // new G4PVPlacement(0, G4ThreeVector(-cx1, cy1, 0.0), fiberCLog, "fiberCladC", holeLV, false, 2, fCheckOverlaps);
     // new G4PVPlacement(0, G4ThreeVector(0., -R, 0.), fiberCLog, "fiberCladC", holeLV, false, 3, fCheckOverlaps);
 
     // new G4PVPlacement(0, G4ThreeVector(cx1, -cy1, 0.), fiberSLog, "fiberCladS", holeLV, false, 1, fCheckOverlaps);
-    // new G4PVPlacement(0, G4ThreeVector(0.0, R, 0.), fiberSLog, "fiberCladS", holeLV, false, 2, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0.0, 0, 0.), fiberSLog, "fiberCladS", holeLV, false, 2, fCheckOverlaps);
     // new G4PVPlacement(0, G4ThreeVector(-cx1, -cy1, 0.), fiberSLog, "fiberCladS", holeLV, false, 3, fCheckOverlaps);
 
     /*if(sd){
@@ -534,11 +594,13 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     rodLV->SetVisAttributes(new G4VisAttributes(FALSE, G4Colour(0.0, 0.0, 0.0, 0.6)));   // blue
     // holeLV->SetVisAttributes(new G4VisAttributes(FALSE,G4Colour(1.0,1.0,1.0))); // black
     holeLV->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(1.0, 1.0, 1.0, 0.5))); // white
-    fiberNLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0, .7, 0, 0.5))); 
+    // fiberNLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0, .7, 0, 0.5))); 
     fiberCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.8, 1.0, 0.8, 0.5)));
     fiberCoreCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.98, 0.5, 0.98, 0.9)));
     fiberSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.5, 0.8, 0.9)));       // red
     fiberCoreSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.98, 0.98, 0.9))); // red
+    
+    airVolumeLV->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(1.0, 1.0, 1.0, 0.5))); // white
 
     std::cout << "B4DetectorConstruction::DefineVolumes()...  endss..." << std::endl;
     //

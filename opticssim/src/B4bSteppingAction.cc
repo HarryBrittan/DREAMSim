@@ -158,6 +158,15 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
       // std::cout << "Photon " << trackID << " is leaving the detector. Position x " << postStepPoint->GetPosition().x() << " y " << postStepPoint->GetPosition().y() << " z " << postStepPoint->GetPosition().z() << std::endl;
       G4ThreeVector exitPosition = postStepPoint->GetPosition();
       G4ThreeVector exitMomentum = track->GetMomentum();
+    
+    G4VPhysicalVolume* volume = step->GetPreStepPoint()->GetPhysicalVolume();
+
+    if (volume->GetName() == "AirVolume"){
+      // Get the zposition of the photon
+      G4double zPosition = postStepPoint->GetPosition().z();
+
+      hh->AddPhotonZPosition(zPosition);
+    }
 
       // Find the photon in the container and update its exit information
       for (auto &photon : hh->photonData)

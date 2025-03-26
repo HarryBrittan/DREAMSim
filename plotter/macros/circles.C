@@ -6,8 +6,8 @@
 void circles() {
     // Parameters
     int nPoints = 100;      // Number of points to approximate the circles
-    double r1 = 0.39;          // Radius of the inner circle
-    double r2 = 0.4;          // Radius of the outer circle
+    double r1 = 0.039;          // Radius of the inner circle
+    double r2 = 0.04;          // Radius of the outer circle
 
     double R = r2 * 2.0 + 0.01; // 10 micron gap between central and peripheral fibers
     double cx1 = R * cos(30.0*M_PI/180 );

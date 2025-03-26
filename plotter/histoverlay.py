@@ -44,8 +44,8 @@ hist_info = {
         'xlabel': 'Time Delta [ns]',
         'ylabel': 'Counts (Normalized)',
         'title': 'Optical Photons Time Delta',
-        'xrange': (4, 12),   # Example x-axis range
-        'yrange': (0, .3)  # Example y-axis range
+        'xrange': (5, 7),   # Example x-axis range
+        'yrange': (0, .1)  # Example y-axis range
     },
     'OP_cosTheta_produced_total_op': {
         'xlabel': 'cos(Theta)',
