@@ -69,6 +69,7 @@ private:
   int pdeLambdaMin, pdeLambdaMax;
   std::vector<float> sipmPDE;
   double findInvisible(const G4Step *step, bool verbose = false);
+  void fillOPInfo(const G4Step *step, bool verbose = false);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

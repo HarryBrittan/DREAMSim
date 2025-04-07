@@ -25,6 +25,7 @@
 
 #include "CaloHit.h"
 #include "CaloID.h"
+#include "PhotonInfo.h"
 
 using namespace std;
 
@@ -200,6 +201,9 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("truthhit_edepbirk", &m_edepbirktruth);
   tree->Branch("truthhit_ncer", &m_ncertruth);
   tree->Branch("truthhit_ncercap", &m_ncercaptruth);
+  tree->Branch("truthhit_layerNumber", &m_layerNumber);
+  tree->Branch("truthhit_rodNumber", &m_rodNumber);
+  tree->Branch("truthhit_fiberNumber", &m_fiberNumber);
 
   tree->Branch("eCalotruth", &m_eCalotruth);
   tree->Branch("eWorldtruth", &m_eWorldtruth);
@@ -234,6 +238,34 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("tslice3dCC", &m_tslice3dCC);
   tree->Branch("ph3dCC", &m_ph3dCC);
   tree->Branch("sum3dCC", &m_sum3dCC);
+
+  tree->Branch("nOPs", &mP_nOPs);
+  tree->Branch("OP_trackid", &mP_trackid);
+  tree->Branch("OP_pos_produced_x", &mP_pos_produced_x);
+  tree->Branch("OP_pos_produced_y", &mP_pos_produced_y);
+  tree->Branch("OP_pos_produced_z", &mP_pos_produced_z);
+  tree->Branch("OP_mom_produced_x", &mP_mom_produced_x);
+  tree->Branch("OP_mom_produced_y", &mP_mom_produced_y);
+  tree->Branch("OP_mom_produced_z", &mP_mom_produced_z);
+  tree->Branch("OP_pos_final_x", &mP_pos_final_x);
+  tree->Branch("OP_pos_final_y", &mP_pos_final_y);
+  tree->Branch("OP_pos_final_z", &mP_pos_final_z);
+  tree->Branch("OP_mom_final_x", &mP_mom_final_x);
+  tree->Branch("OP_mom_final_y", &mP_mom_final_y);
+  tree->Branch("OP_mom_final_z", &mP_mom_final_z);
+  tree->Branch("OP_time_produced", &mP_time_produced);
+  tree->Branch("OP_time_final", &mP_time_final);
+  tree->Branch("OP_isCerenkov", &mP_isCerenkov);
+  tree->Branch("OP_isScintillation", &mP_isScintillation);
+  tree->Branch("OP_productionFiber", &mP_productionFiber);
+  tree->Branch("OP_finalFiber", &mP_finalFiber);
+  tree->Branch("OP_isCoreC", &mP_isCoreC);
+  tree->Branch("OP_isCoreS", &mP_isCoreS);
+  tree->Branch("OP_isCladC", &mP_isCladC);
+  tree->Branch("OP_isCladS", &mP_isCladS);
+  tree->Branch("OP_pol_x", &mP_pol_x);
+  tree->Branch("OP_pol_y", &mP_pol_y);
+  tree->Branch("OP_pol_z", &mP_pol_z);
 }
 
 // ########################################################################
@@ -345,6 +377,43 @@ void CaloTree::EndEvent()
     m_nhits3dSS = m_ph3dSS.size();
 
     m_nhitstruth = m_pidtruth.size();
+
+    // optical photon hits
+    for (auto const photon : photonData)
+    {
+      // if (photon.exitTime == 0.0)
+      //   continue;
+      mP_trackid.push_back(photon.trackID);
+      mP_pos_produced_x.push_back(photon.productionPosition.x());
+      mP_pos_produced_y.push_back(photon.productionPosition.y());
+      mP_pos_produced_z.push_back(photon.productionPosition.z());
+      mP_mom_produced_x.push_back(photon.productionMomentum.x());
+      mP_mom_produced_y.push_back(photon.productionMomentum.y());
+      mP_mom_produced_z.push_back(photon.productionMomentum.z());
+      mP_pos_final_x.push_back(photon.exitPosition.x());
+      mP_pos_final_y.push_back(photon.exitPosition.y());
+      mP_pos_final_z.push_back(photon.exitPosition.z());
+      mP_mom_final_x.push_back(photon.exitMomentum.x());
+      mP_mom_final_y.push_back(photon.exitMomentum.y());
+      mP_mom_final_z.push_back(photon.exitMomentum.z());
+      mP_time_produced.push_back(photon.productionTime);
+      mP_time_final.push_back(photon.exitTime);
+      mP_isCerenkov.push_back(photon.isCerenkov);
+      mP_isScintillation.push_back(photon.isScintillation);
+      mP_productionFiber.push_back(photon.productionFiber);
+      mP_finalFiber.push_back(photon.exitFiber);
+      mP_isCoreC.push_back(photon.isCoreC);
+      mP_isCoreS.push_back(photon.isCoreS);
+      mP_isCladC.push_back(photon.isCladC);
+      mP_isCladS.push_back(photon.isCladS);
+      mP_pol_x.push_back(photon.polarization.x());
+      mP_pol_y.push_back(photon.polarization.y());
+      mP_pol_z.push_back(photon.polarization.z());
+
+      // std::cout << "Propagation length in z " << photon.exitPosition.z() - photon.productionPosition.z() << " speed " << (photon.exitTime - photon.productionTime) / (photon.exitPosition.z() - photon.productionPosition.z()) << " costheta " << photon.productionMomentum.z() / photon.productionMomentum.mag() << std::endl;
+    }
+    mP_nOPs = photonData.size();
+
     //
     tree->Fill();
     std::cout << "Look into energy deposition in the calorimeter..." << std::endl;
@@ -413,6 +482,9 @@ void CaloTree::clearCaloTree()
   m_edepbirktruth.clear();
   m_ncertruth.clear();
   m_ncercaptruth.clear();
+  m_layerNumber.clear();
+  m_rodNumber.clear();
+  m_fiberNumber.clear();
 
   m_eCalotruth = 0.0;
   m_eWorldtruth = 0.0;
@@ -448,6 +520,36 @@ void CaloTree::clearCaloTree()
   m_tslice3dCC.clear();
   m_ph3dCC.clear();
   m_sum3dCC = 0.0;
+
+  // clean photons
+  photonData.clear();
+  mP_nOPs = 0;
+  mP_trackid.clear();
+  mP_pos_produced_x.clear();
+  mP_pos_produced_y.clear();
+  mP_pos_produced_z.clear();
+  mP_mom_produced_x.clear();
+  mP_mom_produced_y.clear();
+  mP_mom_produced_z.clear();
+  mP_pos_final_x.clear();
+  mP_pos_final_y.clear();
+  mP_pos_final_z.clear();
+  mP_mom_final_x.clear();
+  mP_mom_final_y.clear();
+  mP_mom_final_z.clear();
+  mP_time_produced.clear();
+  mP_time_final.clear();
+  mP_isCerenkov.clear();
+  mP_isScintillation.clear();
+  mP_productionFiber.clear();
+  mP_finalFiber.clear();
+  mP_isCoreC.clear();
+  mP_isCoreS.clear();
+  mP_isCladC.clear();
+  mP_isCladS.clear();
+  mP_pol_x.clear();
+  mP_pol_y.clear();
+  mP_pol_z.clear();
 }
 
 // ########################################################################
@@ -472,6 +574,9 @@ void CaloTree::accumulateHits(CaloHit ah)
     m_edepbirktruth.push_back(ah.edepbirk);
     m_ncertruth.push_back(ah.ncer);
     m_ncercaptruth.push_back(ah.ncercap);
+    m_layerNumber.push_back(ah.layerNumber);
+    m_rodNumber.push_back(ah.rodNumber);
+    m_fiberNumber.push_back(ah.fiberNumber);
   }
 
   CaloID id = ah.caloid;
