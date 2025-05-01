@@ -18,6 +18,7 @@ class TH1D;
 class TH2D;
 
 class CaloHit;
+struct PhotonInfo;
 
 using namespace std;
 
@@ -47,6 +48,8 @@ public:
   std::map<std::string, TH1D *>::iterator histo1Diter;
   std::map<std::string, TH2D *> histo2D;
   std::map<std::string, TH2D *>::iterator histo2Diter;
+
+  vector<PhotonInfo> photonData;
 
 private:
   // private functions.
@@ -151,6 +154,9 @@ private:
   vector<double> m_edepbirktruth;
   vector<double> m_ncertruth;
   vector<double> m_ncercaptruth;
+  vector<int> m_layerNumber;
+  vector<int> m_rodNumber;
+  vector<int> m_fiberNumber;
 
   double m_eCalotruth;
   double m_eWorldtruth;
@@ -187,6 +193,35 @@ private:
   vector<int> m_tslice3dCC;
   vector<float> m_ph3dCC; //  number of photons
   float m_sum3dCC;
+
+  // optical photon hit variables
+  int mP_nOPs;
+  vector<int> mP_trackid;
+  vector<double> mP_pos_produced_x;
+  vector<double> mP_pos_produced_y;
+  vector<double> mP_pos_produced_z;
+  vector<double> mP_mom_produced_x;
+  vector<double> mP_mom_produced_y;
+  vector<double> mP_mom_produced_z;
+  vector<double> mP_time_produced;
+  vector<double> mP_pos_final_x;
+  vector<double> mP_pos_final_y;
+  vector<double> mP_pos_final_z;
+  vector<double> mP_mom_final_x;
+  vector<double> mP_mom_final_y;
+  vector<double> mP_mom_final_z;
+  vector<double> mP_time_final;
+  vector<int> mP_productionFiber;
+  vector<int> mP_finalFiber;
+  vector<int> mP_isCerenkov;
+  vector<int> mP_isScintillation;
+  vector<bool> mP_isCoreC;
+  vector<bool> mP_isCoreS;
+  vector<bool> mP_isCladC;
+  vector<bool> mP_isCladS;
+  vector<double> mP_pol_x;
+  vector<double> mP_pol_y;
+  vector<double> mP_pol_z;
 };
 
 #endif

@@ -47,6 +47,7 @@
 #include "CaloID.h"  // including CaloID, CaloHit, CaloTree
 #include "CaloHit.h" // including CaloID, CaloHit, CaloTree
 #include "CaloTree.h"
+#include "PhotonInfo.h"
 
 #include "TH1D.h"
 
@@ -82,6 +83,7 @@ B4bSteppingAction::~B4bSteppingAction()
 void B4bSteppingAction::UserSteppingAction(const G4Step *step)
 {
   G4Track *track = step->GetTrack();
+  G4int trackID = track->GetTrackID();
 
   // Collect energy and track length step by step
 
@@ -95,8 +97,7 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
 
   if (particleDef == opticalphoton)
   {
-    track->SetTrackStatus(fStopAndKill);
-    return;
+    fillOPInfo(step, false);
   }
   //   === end of checking optical photon ===
 
@@ -154,7 +155,8 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   }
 
   // check energy conservation
-  double e_net_change = findInvisible(step, 0);
+  // double e_net_change = findInvisible(step, 0);
+  double e_net_change = 0;
   hh->accumulateEnergy(e_net_change / GeV, -90);
 
   if (thisName.compare(0, 5, "World") == 0)
@@ -166,7 +168,7 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   if (thisName.compare(0, 3, "Rod") == 0)
   {
     caloType = 1;
-    fiberNumber = 0;
+    fiberNumber = -1;
     holeNumber = 0;
     rodNumber = touchable->GetCopyNumber(0);
     layerNumber = touchable->GetCopyNumber(1);
@@ -187,6 +189,10 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
 
   if (caloType == 2 || caloType == 3)
   {
+    // todo: there might be better ways to get these information.
+    // 0 is core number,
+    // 1 is fiber/clad nummber (since core is in clad)
+    // 2 is hole, 3 is rod, 4 is layer
     fiberNumber = touchable->GetCopyNumber(1);
     holeNumber = touchable->GetCopyNumber(2);
     rodNumber = touchable->GetCopyNumber(3);
@@ -213,6 +219,9 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   aHit.y = posA.y() / cm;
   aHit.z = posA.z() / cm;
   aHit.pid = pdgcode;
+  aHit.fiberNumber = fiberNumber;
+  aHit.rodNumber = rodNumber;
+  aHit.layerNumber = layerNumber;
   // if (fabs(pdgcode) > 1e9)
   //{
   //   // https://indico.ph.tum.de/event/3955/sessions/752/attachments/2741/3099/Day3_Physics.pdf
@@ -275,11 +284,7 @@ vector<double> B4bSteppingAction::UserCerenkov(const G4Step *step)
       theParticle->GetParticleDefinition();
   G4int pdgcode = abs(theParticle->GetPDGcode());
 
-  if (particleDef == opticalphoton)
-  {
-    // do noting for now
-  }
-  else
+  if (particleDef != opticalphoton)
   { // particle != opticalphoton
     // print how many Cerenkov and scint photons produced this step
     // this demonstrates use of GetNumPhotons()
@@ -754,4 +759,140 @@ double B4bSteppingAction::findInvisible(const G4Step *step, bool verbose)
     std::cout << std::endl;
   }
   return e_net_change;
+}
+
+void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
+{
+  G4Track *track = step->GetTrack();
+  const G4int trackID = track->GetTrackID();
+
+  // propagate optical photons in this copper
+  G4StepPoint *preStepPoint = step->GetPreStepPoint();
+  G4StepPoint *postStepPoint = step->GetPostStepPoint();
+
+  bool isCoreS = false;
+  bool isCoreC = false;
+  bool isCladS = false;
+  bool isCladC = false;
+  auto detname = track->GetTouchable()->GetVolume()->GetLogicalVolume()->GetName();
+  if (detname == "fiberCoreS")
+  {
+    isCoreS = true;
+  }
+  else if (detname == "fiberCoreC")
+  {
+    isCoreC = true;
+  }
+  else if (detname == "fiberCladS")
+  {
+    isCladS = true;
+  }
+  else if (detname == "fiberCladC")
+  {
+    isCladC = true;
+  }
+
+  bool isGoingOutside = false;
+  if (postStepPoint->GetTouchableHandle()->GetVolume())
+  {
+    auto detname = postStepPoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume()->GetName();
+    if (detname == "World" || detname == "Calorimeter")
+    {
+      isGoingOutside = true;
+    }
+  }
+
+  int fiberIdx = 1;
+  if (isCladS || isCladC)
+  {
+    // Core is in "Clad"
+    // if already in clad, then the first volume is the clad, aka fiber id
+    fiberIdx = 0;
+  }
+
+  int fiberNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx);
+  int holeNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx + 1);
+  int rodNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx + 2);
+  int layerNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx + 3);
+
+  double x = track->GetPosition().x() / cm;
+  double y = track->GetPosition().y() / cm;
+  // if (!(x > -0.0 && x < 0.4 && y > -0.0 && y < 0.4))
+  // if ((!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40) && !isGoingOutside)
+  if (!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40)
+  {
+    // std::cout<<"Stepping Action:  optical photon outside the center"<<std::endl;
+    track->SetTrackStatus(fStopAndKill);
+    return;
+  }
+
+  // if (fabs(x) > 1.0 || fabs(y) > 1.0)
+  //{
+  //   std::cout << "photon x" << x << "  y " << y << "  z " << track->GetPosition().z() / cm << " fiber Number " << fiberNumber << "  hole Number " << holeNumber << "  rod Number " << rodNumber << "  layer Number " << layerNumber << " isGoingOutside " << isGoingOutside << " isCoreS " << isCoreS << " isCladS " << isCladS << "isCoreC " << isCoreC << " isCladC " << isCladC << " preStep volume " << preStepPoint->GetTouchableHandle()->GetVolume()->GetName() << " postStep volume " << postStepPoint->GetTouchableHandle()->GetVolume()->GetName() << std::endl;
+  // }
+
+  // Check if the photon is just created.
+  if (track->GetCurrentStepNumber() == 1)
+  {
+    G4ThreeVector productionPosition = preStepPoint->GetPosition();
+    G4double initialKineticEnergy = track->GetKineticEnergy();
+
+    // Add to photon data
+    PhotonInfo photon;
+    photon.trackID = trackID;
+    photon.productionPosition = productionPosition / cm;
+    photon.productionMomentum = track->GetMomentum() / GeV;
+    photon.productionTime = track->GetGlobalTime() / ns;
+    photon.polarization = track->GetPolarization();
+
+    auto *creatorProcess = track->GetCreatorProcess();
+    if (creatorProcess)
+    {
+      if (creatorProcess->GetProcessName() == "Cerenkov")
+      {
+        photon.isCerenkov = true;
+      }
+      else if (creatorProcess->GetProcessName() == "Scintillation")
+      {
+        photon.isScintillation = true;
+      }
+    }
+
+    photon.isCoreS = isCoreS;
+    photon.isCoreC = isCoreC;
+    photon.isCladS = isCladS;
+    photon.isCladC = isCladC;
+
+    photon.productionFiber = fiberNumber;
+
+    // Save initial data, exit info will be filled later
+    hh->photonData.push_back(photon);
+  }
+
+  // Check if the photon is leaving the detector to the world
+  if (isGoingOutside)
+  {
+    G4ThreeVector exitPosition = postStepPoint->GetPosition();
+    G4ThreeVector exitMomentum = track->GetMomentum();
+
+    // Find the photon in the container and update its exit information
+    for (auto &photon : hh->photonData)
+    {
+      if (photon.trackID == trackID)
+      {
+        // std::cout << "Photon " << trackID << " found in container. Updating exit info. Left x " << exitPosition.x() << " y " << exitPosition.y() << " z " << exitPosition.z() << std::endl;
+        photon.exitPosition = exitPosition / cm;
+        photon.exitMomentum = exitMomentum / GeV;
+        photon.exitTime = track->GetGlobalTime() / ns;
+        // photon.exitFiber = preStepPoint->GetTouchable()->GetVolume()->GetCopyNo();
+
+        if (verbose)
+        {
+          std::cout << "Photon arriving at the end. Touchable name " << preStepPoint->GetTouchable()->GetVolume()->GetName() << " copy number " << preStepPoint->GetTouchable()->GetVolume()->GetCopyNo() << " depth " << preStepPoint->GetTouchable()->GetHistory()->GetDepth() << " vol1 number " << preStepPoint->GetTouchable()->GetCopyNumber(1) << " vol2 number " << preStepPoint->GetTouchable()->GetCopyNumber(2) << " vol3 number " << preStepPoint->GetTouchable()->GetCopyNumber(3) << " vol4 number " << preStepPoint->GetTouchable()->GetCopyNumber(4) << " vol5 number " << preStepPoint->GetTouchable()->GetCopyNumber(5) << " x " << preStepPoint->GetPosition().x() / cm << " y " << preStepPoint->GetPosition().y() / cm << " z " << preStepPoint->GetPosition().z() / cm << std::endl;
+        }
+
+        break;
+      }
+    }
+  }
 }
