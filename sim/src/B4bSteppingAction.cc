@@ -774,6 +774,7 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
   bool isCoreC = false;
   bool isCladS = false;
   bool isCladC = false;
+  bool isAirVolume = false;
   auto detname = track->GetTouchable()->GetVolume()->GetLogicalVolume()->GetName();
   if (detname == "fiberCoreS")
   {
@@ -791,12 +792,16 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
   {
     isCladC = true;
   }
+  else if (detname == "AirVolume")
+  {
+    isAirVolume = true;
+  }
 
   bool isGoingOutside = false;
   if (postStepPoint->GetTouchableHandle()->GetVolume())
   {
     auto detname = postStepPoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume()->GetName();
-    if (detname == "World" || detname == "Calorimeter")
+    if (detname == "AirVolume" || detname == "Calorimeter")
     {
       isGoingOutside = true;
     }
@@ -819,7 +824,7 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
   double y = track->GetPosition().y() / cm;
   // if (!(x > -0.0 && x < 0.4 && y > -0.0 && y < 0.4))
   // if ((!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40) && !isGoingOutside)
-  if (!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40)
+  if (!(isCoreS || isCoreC || isCladS || isAirVolume || isCladC) || rodNumber != 45 || layerNumber != 40 )
   {
     // std::cout<<"Stepping Action:  optical photon outside the center"<<std::endl;
     track->SetTrackStatus(fStopAndKill);

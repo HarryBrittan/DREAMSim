@@ -176,6 +176,9 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     double worldSizeY = 1.4 * calorSizeY;
     double worldSizeZ = 1.2 * calorSizeZ;
 
+    double airvolumeX = calorSizeX;
+    double airvolumeY = calorSizeY;
+    double airvolumeZ = 2.0 * cm;
     double density;
     int ncomponentsbrass;
 
@@ -312,6 +315,35 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
         false,           // no boolean operation
         0,               // copy number
         fCheckOverlaps); // checking overlaps
+
+    G4Material *airvolumemat = G4Material::GetMaterial("G4_AIR");
+    auto airvolumeS = new G4Box("AirVolume", // its name
+                                airvolumeX / 2.0, airvolumeY / 2.0, airvolumeZ / 2.); // its size
+    auto airvolumeLV = new G4LogicalVolume(
+        airvolumeS,   // its solid
+        airvolumemat, // its material
+        "AirVolume");  // its name
+
+    // 1. Use same rotation matrix
+    G4RotationMatrix* rot = new G4RotationMatrix(*xRot); // clone it to avoid pointer aliasing issues
+
+    // 2. Define relative offset: from center of calo to center of air volume, along local +Z
+    G4ThreeVector localOffset(0, 0, (calorSizeZ / 2.0) + (airvolumeZ / 2.0));
+
+    // 3. Rotate the local offset to world coordinates
+    G4ThreeVector globalOffset = (*rot) * localOffset;
+
+    // 4. Place the air volume at global offset from the calorimeter's center
+    new G4PVPlacement(
+        rot,                 // same rotation as calorimeter
+        globalOffset,        // correctly rotated offset
+        airvolumeLV,
+        "AirVolume",
+        worldLV,
+        false,
+        0,
+        fCheckOverlaps);
+
 
     //
     //  Fibers
@@ -503,6 +535,7 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
     fiberCoreCLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.98, 0.5, 0.98, 0.9)));
     fiberSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.5, 0.8, 0.9)));       // red
     fiberCoreSLog->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(0.0, 0.98, 0.98, 0.9))); // red
+    airvolumeLV->SetVisAttributes(new G4VisAttributes(TRUE, G4Colour(1.0, 1.0, 1.0, 0.5))); // white
 
     std::cout << "B4DetectorConstruction::DefineVolumes()...  ends..." << std::endl;
     //
