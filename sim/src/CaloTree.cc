@@ -59,8 +59,15 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   string outname =
       getParamS("jobName") + "_run" + getParamS("runNumber") + "_" +
       getParamS("runSeq") + "_" + getParamS("runConfig") + "_" +
-      getParamS("numberOfEvents") + "evt_" + getParamS("gun_particle") + "_" +
-      getParamS("gun_energy_min") + "_" + getParamS("gun_energy_max");
+      getParamS("numberOfEvents") + "evt_";
+  if (!getParamB("CaloXPythiaON", false, false))
+  {
+    outname += getParamS("gun_particle") + "_" + getParamS("gun_energy_min") + "_" + getParamS("gun_energy_max");
+  }
+  else
+  {
+    outname += "py8";
+  }
   string outRootName = getParamS("rootPre") + "_" + outname + ".root";
 
   eventCounts = 0;
@@ -266,6 +273,10 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("OP_pol_x", &mP_pol_x);
   tree->Branch("OP_pol_y", &mP_pol_y);
   tree->Branch("OP_pol_z", &mP_pol_z);
+
+  tree->Branch("nOPsCer", &mP_nOPsCer);
+  tree->Branch("nOPsCer_Cer", &mP_nOPsCer_Cer);
+  tree->Branch("nOPsCer_Sci", &mP_nOPsCer_Sci);
 }
 
 // ########################################################################
@@ -294,8 +305,8 @@ void CaloTree::EndEvent()
 
   if ((eventCounts - 1) < getParamI("eventsInNtupe"))
   {
-    m_beamMinE = getParamF("gun_energy_min");
-    m_beamMaxE = getParamF("gun_energy_max");
+    m_beamMinE = getParamF("gun_energy_min", false, -1.0);
+    m_beamMaxE = getParamF("gun_energy_max", false, -1.0);
     m_gridSizeX = getParamF("gridSizeX"); // rod count
     m_gridSizeY = getParamF("gridSizeY"); // rod count
     m_gridSizeT = getParamF("gridSizeT"); // ps unit
@@ -550,6 +561,10 @@ void CaloTree::clearCaloTree()
   mP_pol_x.clear();
   mP_pol_y.clear();
   mP_pol_z.clear();
+
+  mP_nOPsCer = 0;
+  mP_nOPsCer_Cer = 0;
+  mP_nOPsCer_Sci = 0;
 }
 
 // ########################################################################
@@ -643,6 +658,20 @@ void CaloTree::accumulateEnergy(double edep, int type = 0)
     m_eScintruth += edep;
   if (type == 3)
     m_eCentruth += edep;
+}
+
+void CaloTree::accumulateOPsCer(bool isCoreC, int nOPs)
+{
+  if (isCoreC)
+  {
+    mP_nOPsCer_Cer += nOPs; // Cerenkov fibers
+    mP_nOPsCer += nOPs;
+  }
+  else
+  {
+    mP_nOPsCer_Sci += nOPs; // Scintillation fiber
+    mP_nOPsCer += nOPs;
+  }
 }
 
 // ########################################################################
@@ -1009,35 +1038,69 @@ bool CaloTree::setParam(string key, string val)
   return !keyfound; // return code:  true is error.
 }
 
+bool CaloTree::getParamB(string key, bool is_required, bool default_value)
+{
+  // return true if the key is found in the map.
+  // return false if the key is not found in the map.
+  bool val = false;
+  if (mcParams.find(key) != mcParams.end())
+  {
+    if (mcParams[key] == "true")
+      val = true;
+    else
+      val = false;
+  }
+  else if (is_required)
+  {
+    std::cout << "  " << std::endl;
+    std::cout << "CaloTree::getParamB: Parameter key (" << key
+              << ") does not exist in the mac file. Exit.." << std::endl;
+    std::cout << "    note:  key word is case sensitive." << std::endl;
+    std::cout << " bool " << std::endl;
+    std::cout << "  " << std::endl;
+    std::exit(0);
+  }
+  else
+  {
+    val = default_value; // return default value if not required.
+  }
+  return val;
+}
+
 // =======================================================================
-float CaloTree::getParamF(string key)
+float CaloTree::getParamF(string key, bool is_required, float default_value)
 {
   float val = 98765.0;
   if (mcParams.find(key) != mcParams.end())
   {
     val = std::stof(mcParams[key]);
   }
-  else
+  else if (is_required)
   {
     std::cout << "  " << std::endl;
     std::cout << "CaloTree::getParamF: Parameter key (" << key
               << ") does not exist in the mac file. Exit.." << std::endl;
     std::cout << "    note:  key word is case sensitive." << std::endl;
+    std::cout << " float " << std::endl;
     std::cout << "  " << std::endl;
     std::exit(0);
+  }
+  else
+  {
+    val = default_value; // return default value if not required.
   }
   return val;
 }
 
 // =======================================================================
-int CaloTree::getParamI(string key)
+int CaloTree::getParamI(string key, bool is_required, int default_value)
 {
   int val = 98765;
   if (mcParams.find(key) != mcParams.end())
   {
     val = std::stoi(mcParams[key]);
   }
-  else
+  else if (is_required)
   {
     std::cout << "  " << std::endl;
     std::cout << "CaloTree::getParamI: Parameter key (" << key
@@ -1047,29 +1110,35 @@ int CaloTree::getParamI(string key)
     std::cout << "  " << std::endl;
     std::exit(0);
   }
-
+  else
+  {
+    val = default_value; // return default value if not required.
+  }
   return val;
 }
 
 // =======================================================================
-string CaloTree::getParamS(string key)
+string CaloTree::getParamS(string key, bool is_required, string default_value)
 {
   string val = "aaa";
   if (mcParams.find(key) != mcParams.end())
   {
     val = mcParams[key];
   }
-  else
+  else if (is_required)
   {
     std::cout << "  " << std::endl;
-    std::cout << "CaloTree::getParamI: Parameter key (" << key
+    std::cout << "CaloTree::getParamS: Parameter key (" << key
               << ") does not exist in the mac file. Exit.." << std::endl;
     std::cout << "    note:  key word is case sensitive." << std::endl;
     std::cout << " string " << std::endl;
     std::cout << "  " << std::endl;
     std::exit(0);
   }
-
+  else
+  {
+    val = default_value; // return default value if not required.
+  }
   return val;
 }
 
