@@ -201,13 +201,6 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
     // rodReplicaNumber=touchable->GetReplicaNumber(3);
     // layerReplicaNumber=touchable->GetReplicaNumber(4);
   }
-  // std::cout<<"Stepping Action: depth "<<depth<<"  volume "<<thisName<<"  copy no "<<thisCopyNo;
-  // std::cout<<" calotype "<<caloType;
-  // std::cout<<" f "<<fiberNumber;
-  // std::cout<<" h "<<holeNumber;
-  // std::cout<<" r "<<rodNumber<<" lyr "<<layerNumber;
-  //  std::cout<<" "<<std::endl;
-  // std::cout<<" replicas "<<holeReplicaNumber<<"  "<<rodReplicaNumber<<"  "<<layerReplicaNumber<<std::endl;
 
   hh->accumulateEnergy(edep / GeV, caloType);
 
@@ -235,7 +228,8 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   aHit.globaltime = track->GetGlobalTime() / ns;
   aHit.localtime = track->GetLocalTime() / ns;
   aHit.steplength = track->GetTrackLength() / cm;
-  aHit.edep = edep / GeV; //  in GeV
+  aHit.edep = edep / GeV;             //  in GeV
+  aHit.edepNonIon = edepNonIon / GeV; // in GeV
   aHit.edepbirk = edep * birks / GeV;
   if (ncer.size() > 0)
   {
@@ -423,7 +417,6 @@ double B4bSteppingAction::getBirk(const G4Step *step)
   }
 
   return weight;
-  ;
 }
 
 double B4bSteppingAction::getBirkHC(double dEStep, double step, double charge, double density)
@@ -810,6 +803,18 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
     fiberIdx = 0;
   }
 
+  if (isCoreC || isCoreS)
+  {
+    if (track->GetCurrentStepNumber() == 1)
+    {
+      auto *creatorProcess = track->GetCreatorProcess();
+      if (creatorProcess && creatorProcess->GetProcessName() == "Cerenkov")
+      {
+        hh->accumulateOPsCer(isCoreC, 1);
+      }
+    }
+  }
+
   int fiberNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx);
   int holeNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx + 1);
   int rodNumber = preStepPoint->GetTouchableHandle()->GetCopyNumber(fiberIdx + 2);
@@ -817,7 +822,6 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
 
   double x = track->GetPosition().x() / cm;
   double y = track->GetPosition().y() / cm;
-  // if (!(x > -0.0 && x < 0.4 && y > -0.0 && y < 0.4))
   // if ((!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40) && !isGoingOutside)
   if (!(isCoreS || isCoreC || isCladS || isCladC) || rodNumber != 45 || layerNumber != 40)
   {
