@@ -75,12 +75,12 @@ for part in rdfs.keys():
         .Define("OP_passEnd_isCoreS_normalized", "OP_passEnd_isCoreS * eventweight") \
         .Define("OP_isCoreC_normalized", "OP_isCoreC * eventweight") \
         .Define("OP_isCoreS_normalized", "OP_isCoreS * eventweight")
-        
+
     rdfs_new[part] = rdfs_new[part].Define("OP_energy_final", "sqrt(OP_mom_final_z*OP_mom_final_z+OP_mom_final_y*OP_mom_final_y+OP_mom_final_x*OP_mom_final_x)") \
         .Define("OP_wavelength_final", "1239.8e-9 / OP_energy_final") \
         .Define("OP_energy_produced", "sqrt(OP_mom_produced_z*OP_mom_produced_z+OP_mom_produced_y*OP_mom_produced_y+OP_mom_produced_x*OP_mom_produced_x)") \
         .Define("OP_wavelength_produced", "1239.8e-9 / OP_energy_produced")
-        
+
     rdfs_new[part] = rdfs_new[part].Define("nOPs_produced", "Sum(OP_time_produced > 0.)") \
         .Define("nOPs_produced_isCoreC", "Sum(OP_time_produced > 0. && OP_isCoreC)") \
         .Define("nOPs_produced_isCoreS", "Sum(OP_time_produced > 0. && OP_isCoreS)") \
@@ -90,10 +90,10 @@ for part in rdfs.keys():
         .Define("capEff", "float(nOPs_passEnd) / nOPs_produced") \
         .Define("capEff_isCoreC", "float(nOPs_passEnd_isCoreC) / nOPs_produced_isCoreC") \
         .Define("capEff_isCoreS", "float(nOPs_passEnd_isCoreS) / nOPs_produced_isCoreS")
-        
+
     # energy deposit in the "center of the calorimeter"
     rdfs_new[part] = rdfs_new[part].Define("eDep_center", "Sum(truthhit_edep * (truthhit_layerNumber == 40 && truthhit_rodNumber == 45))")
-            
+
 rdfs = rdfs_new
 
 histos = OrderedDict()
@@ -122,11 +122,11 @@ for fig in figures:
 
 for part, rdf in rdfs.items():
     suffix = "_" + part
-    
+
     histos['nOPs_produced'][part] = rdf.Histo1D(
-        ("nOPs_produced" + suffix, "nOPs_produced", 50, 0, 6e4), "nOPs_produced")
+        ("nOPs_produced" + suffix, "nOPs_produced", 50, 0, 2e3), "nOPs_produced")
     histos['nOPs_passEnd'][part] = rdf.Histo1D(
-        ("nOPs_passEnd" + suffix, "nOPs_passEnd", 50, 0, 2e3), "nOPs_passEnd")
+        ("nOPs_passEnd" + suffix, "nOPs_passEnd", 50, 0, 100), "nOPs_passEnd")
     histos['capEff'][part] = rdf.Histo1D(
         ("capEff" + suffix, "capEff", 50, 0, 0.1), "capEff")
     histos['eDep_center'][part] = rdf.Histo1D(
@@ -165,7 +165,7 @@ for part, rdf in rdfs.items():
         ("time" + suffix, "time", 50, 0, 50), "truthhit_globaltime", "eweight")
     histos['time_zoomed'][part] = rdf.Histo1D(
         ("time_zoomed" + suffix, "time_zoomed", 50, 0, 10), "truthhit_globaltime", "eweight")
-    
+
     histos['truthhit_x_vs_truthhit_y'][part] = rdf.Histo2D(
         ("truthhit_x_vs_truthhit_y" + suffix, "truthhit_x_vs_truthhit_y", 50, -20, 20, 50, -20, 20), "truthhit_x", "truthhit_y", "eweight")
     histos['truthhit_x_vs_truthhit_z'][part] = rdf.Histo2D(
@@ -202,12 +202,42 @@ for part, rdf in rdfs.items():
         oppart = part + "_" + fib
 
         histos['OP_time_produced'][oppart] = rdf.Histo1D(
-            ("OP_time_produced" + suffix, "OP_time_produced", 50, 0, 5), "OP_time_produced", f"OP_passEnd_{fib}_normalized")
+            ("OP_time_produced" + suffix, "OP_time_produced", 50, 0, 1), "OP_time_produced", f"OP_passEnd_{fib}_normalized")
         histos['OP_time_final'][oppart] = rdf.Histo1D(
             ("OP_time_final" + suffix, "OP_time_final", 50, 5, 17), "OP_time_final", f"OP_passEnd_{fib}_normalized")
         histos["OP_time_final_vs_OP_pos_produced_z"][oppart] = rdf.Histo2D(
-            ("OP_time_final_vs_OP_pos_produced_z" + suffix, "OP_time_final_vs_OP_pos_produced_z", 50, 6, 17, 50, -100, 100), "OP_time_final", "OP_pos_produced_z", f"OP_passEnd_{fib}_normalized")
-        
+            ("OP_time_final_vs_OP_pos_produced_z" + suffix, "OP_time_final_vs_OP_pos_produced_z", 50, 9, 17, 50, -100, 100), "OP_time_final", "OP_pos_produced_z", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
+        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
+        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
+            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
+
         histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
             ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
         histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
@@ -259,9 +289,9 @@ DrawHistos(list(histos['eScintruth'].values()), list(histos['eScintruth'].keys(
 )), 1, 5, "SFiber Energy [GeV]", 1e-3, 1e2, "Fraction of events", "eScintruth", **args)
 
 DrawHistos(list(histos['nOPs_produced'].values()), list(histos['nOPs_produced'].keys(
-)), 0, 6e4, "Number of OPs produced", 1e-3, 1e2, "Fraction of events", "nOPs_produced", **args)
+)), 0, 1e3, "Number of OPs produced", 1e-3, 1e2, "Fraction of events", "nOPs_produced", **args)
 DrawHistos(list(histos['nOPs_passEnd'].values()), list(histos['nOPs_passEnd'].keys(
-)), 0, 2e3, "Number of OPs reaching the end", 1e-3, 1e2, "Fraction of events", "nOPs_passEnd", **args)
+)), 0, 100, "Number of OPs reaching the end", 1e-3, 1e2, "Fraction of events", "nOPs_passEnd", **args)
 DrawHistos(list(histos['capEff'].values()), list(histos['capEff'].keys(
 )), 0, 0.1, "Capture Efficiency", 1e-3, 1e2, "Fraction of events", "capEff", **args)
 DrawHistos(list(histos['eDep_center'].values()), list(histos['eDep_center'].keys(
@@ -283,7 +313,7 @@ DrawHistos(list(histos['time'].values()), list(histos['time'].keys(
 DrawHistos(list(histos['time_zoomed'].values()), list(histos['time_zoomed'].keys(
 )), 0, 10, "Time [ns]", 1e-3, 1e2, "Deposited Energy [GeV]", "time_zoomed", **args)
 DrawHistos(list(histos['OP_time_produced'].values()), list(histos['OP_time_produced'].keys(
-)), 0, 5, "Time [ns]", 1e1, 1e8, "Deposited Energy [GeV]", "OP_time_produced", **args)
+)), 0, 1, "Time [ns]", 1e1, 1e8, "Deposited Energy [GeV]", "OP_time_produced", **args)
 DrawHistos(list(histos['OP_time_final'].values()), list(histos['OP_time_final'].keys(
 )), 5, 17, "Time [ns]", 1e1, 1e8, "Deposited Energy [GeV]", "OP_time_final", **args)
 DrawHistos(list(histos['OP_wavelength_produced'].values()), list(histos['OP_wavelength_produced'].keys(
@@ -313,7 +343,7 @@ for part in rdfs.keys():
                "Global time [ns]", -100, 100, "Production z [cm]", f"time_vs_truthhit_z_{part}", **args)
     DrawHistos([histos['time_vs_truthhit_r'][part]], [], 0, 20,
                "Global time [ns]", 0, 30, "Production r [cm]", f"time_vs_truthhit_r_{part}", **args)
-    
+
 
     # event displays
     for i in evtlist:
@@ -328,7 +358,7 @@ for part in rdfs.keys():
         ], 0, 20, "Time [ns]", -100, 100, "z [cm]", f"event_{i}_time_vs_truthhit_z_{part}", **args)
         DrawHistos([histos[f"event_{i}_time_vs_truthhit_r"][part]], [
         ], 0, 20, "Time [ns]", 0, 30, "r [cm]", f"event_{i}_time_vs_truthhit_r_{part}", **args)
-        
+
 
 args['zmax'] = 1e3
 args['zmin'] = 1e-2
@@ -341,9 +371,9 @@ for part in rdfs.keys():
 args['zmax'] = 1e2
 args['zmin'] = 1e-4
 for oppart in histos["OP_time_produced"].keys():
-    DrawHistos([histos["OP_time_final_vs_OP_pos_produced_z"][oppart]], [], 7, 14,
+    DrawHistos([histos["OP_time_final_vs_OP_pos_produced_z"][oppart]], [], 9, 14,
                "Arrival time [ns]", -100, 100, "Production z [cm]", f"OP_time_final_vs_OP_pos_produced_z_{oppart}", **args)
-    
+
 
 
 
