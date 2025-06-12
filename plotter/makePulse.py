@@ -15,7 +15,7 @@ for i in range(h_pulse.GetNbinsX()):
 
 print("pulses: ", pulses)
 
-sim_data = "/Users/yfeng/Desktop/mc_testjob_run001_003_Test_20evt_pi+_100.0_100.0.root"
+sim_data = "/Users/dach/VsCode/HEP/rootfiles/mc_Dream_run04_00_Test_50evt_e+_50.0_50.0.root"
 ifile = ROOT.TFile(sim_data)
 tree = ifile.Get("tree")
 
@@ -27,7 +27,7 @@ nBins = int(time_max / time_per_bin)
 # pulses for truth photons and reco with shapes
 histos_truth = OrderedDict()
 histos_reco = OrderedDict()
-for ievt in range(20):
+for ievt in range(50):
     histos_truth[ievt] = OrderedDict()
     histos_reco[ievt] = OrderedDict()
     for i in range(nFibers):
@@ -73,7 +73,7 @@ for ievt in range(nevts):
 
 # save to file
 ofile = ROOT.TFile("output.root", "RECREATE")
-for ievt in range(20):
+for ievt in range(50):
     for ifiber in range(nFibers):
         histos_truth[ievt][ifiber].Write()
         histos_reco[ievt][ifiber].Write()

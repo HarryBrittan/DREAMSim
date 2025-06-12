@@ -21,8 +21,9 @@ chains['pion'] = ROOT.TChain("tree")
 # chains['neu'] = ROOT.TChain("tree")
 
 # loops = [('ele', elefile), ('pion', pionfile), ('neu', neufile)]
-loops = [('ele', elefile), ('pion', pionfile)]
+#loops = [('ele', elefile), ('pion', pionfile)]
 #loops = [('pion', pionfile)]
+loops = [('ele', elefile)]
 
 rdfs = OrderedDict()
 
