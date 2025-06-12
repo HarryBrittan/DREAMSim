@@ -2,6 +2,28 @@
 
 This workflow allows you to analyze and visualize pulse data and event interactions from a ROOT file in an easy and automated way. The `run_interact.py` script simplifies the process by running the necessary steps in sequence.
 
+## Prerequisites
+
+Before running `run_interact.py`, ensure the following requirements are met:
+
+- **Python 3.7+** is installed.
+- **ROOT** with PyROOT bindings is installed and available in your environment.
+- The following Python packages are installed:
+  - `numpy`
+  - `matplotlib`
+  - `mplcursors`
+- Your simulation ROOT file is available and its path is correctly specified in `root_file_name.txt`.
+- All scripts (`run_interact.py`, `makeInteractPulse.py`, `eventinteract2.py`) are present in this directory.
+
+You can install the required Python packages using:
+```bash
+pip install numpy matplotlib mplcursors
+```
+If you use conda:
+```bash
+conda install numpy matplotlib mplcursors -c conda-forge
+```
+
 ## Usage Instructions
 
 1. **Prepare the ROOT File Name**
