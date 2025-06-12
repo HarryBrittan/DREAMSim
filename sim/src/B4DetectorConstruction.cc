@@ -237,8 +237,10 @@ G4VPhysicalVolume *B4DetectorConstruction::DefineVolumes()
         "Calorimeter"); // its name
 
     G4RotationMatrix *xRot = new G4RotationMatrix; // Rotates X and Z axes only
-    xRot->rotateX(hh->getParamF("caloRotationX") * deg);
-    xRot->rotateY(hh->getParamF("caloRotationY") * deg);
+    //xRot->rotateX(hh->getParamF("caloRotationX") * deg);
+    //xRot->rotateY(hh->getParamF("caloRotationY") * deg);
+    xRot->rotateX(0. * deg);
+    xRot->rotateY(0. * deg);
     xRot->rotateZ(0. * deg);
 
     new G4PVPlacement(

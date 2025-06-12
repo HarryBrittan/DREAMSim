@@ -1158,3 +1158,10 @@ vector<string> CaloTree::parse_line(string line)
   return tokens;
   ;
 };
+
+void CaloTree::AddPhotonZPosition(double z)
+{
+    mP_z_positions_air.push_back(z);
+}
+
+

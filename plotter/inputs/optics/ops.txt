@@ -1,1 +1,1 @@
-/home/hbrittan/caloX/myDREAMSim/DREAMSim/jobs/mc_dreamsim_opticalphoton_0_run1_0_Test_100000evt_opticalphoton_1e-06_1e-06.root
+/home/harryb/HEP/g4/calox/myDREAMSim/DREAMSim/sim/test2/mc_Dream_run04_00_Test_1evt_e+_50.0_50.0.root

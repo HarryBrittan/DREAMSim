@@ -86,6 +86,12 @@ for part, _ in loops:
     rdfs[part] = rdfs[part].Define("OP_pos_final_core", "OP_pos_final_r < 0.039")
     rdfs[part] = rdfs[part].Define("OP_pos_final_clad", "OP_pos_final_r > 0.039 && OP_pos_final_r < 0.040")
     rdfs[part] = rdfs[part].Define("OP_pos_final_out", "OP_pos_final_r > 0.040")
+
+    for i,f in [(0,15), (0, 9), (0, 10), (0, 11), (0, 12)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        rdfs[part] = rdfs[part].Define(f"eWeight_time_between_{i_str}_and_{f_str}_ns", f"eWeight * (OP_time_delta > {i} && OP_time_delta < {f})")
+
     
     
     # sinAlpha
@@ -113,6 +119,13 @@ t_range = 20
 for part, rdf in rdfs.items():
     suffix = "_" + part
 
+    
+    for i, f in [(0, 13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part] = rdf.Histo2D(
+            (f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns" + suffix, f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns", nx_bins, -x_range, x_range, nx_bins, -x_range, x_range), "OP_pos_produced_x", "OP_pos_produced_y", f"eWeight_time_between_{i_str}_and_{f_str}_ns")
+    
     histos['nOPs'][part] = rdf.Histo1D(
         ("nOPs" + suffix, "nOPs", 100, 0, 10000), "nOPs")
     histos['OP_time_produced'][part] = rdf.Histo1D(
@@ -338,6 +351,13 @@ if doOP:
     scale = 2e4
     
 for part in rdfs.keys():
+    for i, f in [(0, 13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        DrawHistos([histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part]], [], -x_range, x_range,
+                   "x [cm]", -x_range, x_range, "y [cm]", f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns_{part}", **args)
+        
+
     DrawHistos([histos['OP_pos_produced_x_vs_y'][part]], [], -x_range, x_range,
                "x [cm]", -x_range, x_range, "y [cm]", f"OP_pos_produced_x_vs_y_{part}", **args)
     DrawHistos([histos['OP_pos_produced_x_vs_y_total'][part]], [], -x_range, x_range,

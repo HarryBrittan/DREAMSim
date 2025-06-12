@@ -55,34 +55,21 @@ class CaloTree;
 
 class B4DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  B4DetectorConstruction(CaloTree *);
-  virtual ~B4DetectorConstruction();
+  public:
+    B4DetectorConstruction(CaloTree *histo);
+    virtual ~B4DetectorConstruction();
 
-public:
-  virtual G4VPhysicalVolume *Construct();
-  virtual void ConstructSDandField();
-  CaloTree *hh;
+    virtual G4VPhysicalVolume *Construct();
+    virtual void ConstructSDandField();
 
-  // get methods
-  //
-  const G4VPhysicalVolume *GetAbsorberPV() const;
-  const G4VPhysicalVolume *GetGapPV() const;
+  private:
+    void DefineMaterials();
+    G4VPhysicalVolume *DefineVolumes();
 
-private:
-  // methods
-  //
-  void DefineMaterials();
-  G4VPhysicalVolume *DefineVolumes();
-
-  // data members
-  //
-  static G4ThreadLocal G4GlobalMagFieldMessenger *fMagFieldMessenger;
-  // magnetic field messenger
-
-  G4bool fCheckOverlaps; // option to activate checking of volumes overlaps
-
-  // G4MaterialPropertiesTable* fWorldMPT;
+    static G4ThreadLocal G4GlobalMagFieldMessenger *fMagFieldMessenger; // Static thread-local magnetic field messenger
+    G4LogicalVolume *airvolumeLV;                                      // Logical volume for AirVolume
+    bool fCheckOverlaps;
+    CaloTree *hh;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
