@@ -46,18 +46,18 @@ for part, filename in loops:
 
 nEvts = OrderedDict()
 nEvts['ele'] = rdfs['ele'].Count().GetValue()
-nEvts['pion'] = rdfs['pion'].Count().GetValue()
+#nEvts['pion'] = rdfs['pion'].Count().GetValue()
 # nEvts['neu'] = rdfs['neu'].Count().GetValue()
 print("Number of events for electrons: ", nEvts['ele'])
-print("Number of events for pions: ", nEvts['pion'])
+#print("Number of events for pions: ", nEvts['pion'])
 # print("Number of events for neutrons: ", nEvts['neu'])
 
 rdfs['ele'] = rdfs['ele'].Define("eventweight", f"1.0 / {nEvts['ele']}")
-rdfs['pion'] = rdfs['pion'].Define("eventweight", f"1.0 / {nEvts['pion']}")
+#rdfs['pion'] = rdfs['pion'].Define("eventweight", f"1.0 / {nEvts['pion']}")
 
 rdfs['ele'] = rdfs['ele'].Define("eweight", f"truthhit_edep/ {nEvts['ele']}")
-rdfs['pion'] = rdfs['pion'].Define(
-    "eweight", f"truthhit_edep/ {nEvts['pion']}")
+#rdfs['pion'] = rdfs['pion'].Define(
+#    "eweight", f"truthhit_edep/ {nEvts['pion']}")
 # rdfs['neu'] = rdfs['neu'].Define("eweight", f"truthhit_edep/ {nEvts['neu']}")
 
 
@@ -73,15 +73,13 @@ for part in rdfs.keys():
         .Define("OP_passEnd_isCoreS", "OP_passEnd && OP_isCoreS") \
         .Define("OP_passEnd_normalized", "OP_passEnd * eventweight") \
         .Define("OP_passEnd_isCoreC_normalized", "OP_passEnd_isCoreC * eventweight") \
-        .Define("OP_passEnd_isCoreS_normalized", "OP_passEnd_isCoreS * eventweight") \
-        .Define("OP_isCoreC_normalized", "OP_isCoreC * eventweight") \
-        .Define("OP_isCoreS_normalized", "OP_isCoreS * eventweight")
-        
-    rdfs_new[part] = rdfs_new[part].Define("OP_energy_final", "sqrt(OP_mom_final_z*OP_mom_final_z+OP_mom_final_y*OP_mom_final_y+OP_mom_final_x*OP_mom_final_x)") \
-        .Define("OP_wavelength_final", "1239.8e-9 / OP_energy_final") \
-        .Define("OP_energy_produced", "sqrt(OP_mom_produced_z*OP_mom_produced_z+OP_mom_produced_y*OP_mom_produced_y+OP_mom_produced_x*OP_mom_produced_x)") \
-        .Define("OP_wavelength_produced", "1239.8e-9 / OP_energy_produced")
-        
+        .Define("OP_passEnd_isCoreS_normalized", "OP_passEnd_isCoreS * eventweight")\
+        .Define("OP_pos_produced_r", "sqrt((OP_pos_produced_x-0.2)*(OP_pos_produced_x-0.2) + (OP_pos_produced_y-0.2)*(OP_pos_produced_y-0.2))") \
+        .Define("OP_pos_final_r_isCoreC", "(sqrt((OP_pos_final_x-0.2)*(OP_pos_final_x-0.2) + (OP_pos_final_y-0.2)*(OP_pos_final_y-0.2)))") \
+        .Define("OP_pos_final_r_isCoreS", "(sqrt((OP_pos_final_x-0.2)*(OP_pos_final_x-0.2) + (OP_pos_final_y-0.28)*(OP_pos_final_y-0.28)))") \
+        # Define the maximum radius of the fiber
+
+    # standard features
     rdfs_new[part] = rdfs_new[part].Define("nOPs_produced", "Sum(OP_time_produced > 0.)") \
         .Define("nOPs_produced_isCoreC", "Sum(OP_time_produced > 0. && OP_isCoreC)") \
         .Define("nOPs_produced_isCoreS", "Sum(OP_time_produced > 0. && OP_isCoreS)") \
@@ -90,13 +88,25 @@ for part in rdfs.keys():
         .Define("nOPs_passEnd_isCoreS", "Sum(OP_passEnd_isCoreS)") \
         .Define("capEff", "float(nOPs_passEnd) / nOPs_produced") \
         .Define("capEff_isCoreC", "float(nOPs_passEnd_isCoreC) / nOPs_produced_isCoreC") \
-        .Define("capEff_isCoreS", "float(nOPs_passEnd_isCoreS) / nOPs_produced_isCoreS")
-        
+        .Define("capEff_isCoreS", "float(nOPs_passEnd_isCoreS) / nOPs_produced_isCoreS") \
+        .Define("OP_time_delta", "(OP_time_final - OP_time_produced)") \
+        .Define("OP_time_dispersion", "(OP_time_delta / (OP_pos_final_z - OP_pos_produced_z))*100000") #in ps/m
+
+    fiber_radius = 0.039  # in cm
+    n_weights = 10  # Number of weights to define
+    radius_step = fiber_radius / n_weights  # Step size for radius
+    # Loop to define weights for each radius threshold
+    for i in range(1, n_weights + 1):
+        radius_threshold = i * radius_step
+        threshold_string = str(radius_threshold).replace(".", "_")
+        rdfs_new[part] = rdfs_new[part].Define(f"weight_radius_{threshold_string}_isCoreC_normalized", f"((OP_passEnd_isCoreC && (OP_pos_final_r_isCoreC <= {radius_threshold}))*eventweight)") \
+            .Define(f"weight_radius_{threshold_string}_isCoreS_normalized", f"((OP_passEnd_isCoreS && (OP_pos_final_r_isCoreS <= {radius_threshold}))*eventweight)")
+
     # energy deposit in the "center of the calorimeter"
     rdfs_new[part] = rdfs_new[part].Define("eDep_center", "Sum(truthhit_edep * (truthhit_layerNumber == 40 && truthhit_rodNumber == 45))")
-            
-rdfs = rdfs_new
 
+rdfs = rdfs_new
+print(rdfs["ele"].GetColumnNames())
 histos = OrderedDict()
 figures = ['eLeaktruth', 'eCalotruth', 'eTotaltruth', 'eTotalGeant',
            'eRodtruth', 'eCentruth', 'eScintruth',
@@ -106,10 +116,17 @@ figures = ['eLeaktruth', 'eCalotruth', 'eTotaltruth', 'eTotalGeant',
            'time_vs_truthhit_z', 'time_vs_truthhit_r',
            "OP_time_produced", "OP_time_final", "OP_time_final_vs_OP_pos_produced_z",
            "eDep_center", "eDep_center_vs_nOPs_produced", "eDep_center_vs_nOPs_passEnd",
-           "nOPs_produced", "nOPs_passEnd", "capEff",
-           "OP_wavelength_produced", "OP_wavelength_final"]
+           "nOPs_produced", "nOPs_passEnd", "capEff", "OP_time_dispersion"]
+for i in range(1, n_weights + 1):
+    radius_threshold = i * radius_step
+    threshold_string = str(radius_threshold).replace(".", "_")
+    figures.append(f"OP_time_dispersion_radius_{threshold_string}_ele_isCoreC")
+    figures.append(f"OP_time_dispersion_radius_{threshold_string}_ele_isCoreS")
 
-
+for i in range(1, n_weights + 1):
+    radius_threshold = i * radius_step
+    threshold_string = str(radius_threshold).replace(".", "_")
+    figures.append(f"OP_time_dispersion_radius_{threshold_string}")
 evtlist = [1, 3, 5, 10, 15]
 for i in evtlist:
     figures.append(f"event_{i}_truthhit_x_vs_truthhit_y")
@@ -118,12 +135,14 @@ for i in evtlist:
     figures.append(f"event_{i}_time_vs_truthhit_z")
     figures.append(f"event_{i}_time_vs_truthhit_r")
 
+
 for fig in figures:
     histos[fig] = OrderedDict()
 
+
 for part, rdf in rdfs.items():
     suffix = "_" + part
-    
+
     histos['nOPs_produced'][part] = rdf.Histo1D(
         ("nOPs_produced" + suffix, "nOPs_produced", 50, 0, 6e4), "nOPs_produced")
     histos['nOPs_passEnd'][part] = rdf.Histo1D(
@@ -166,7 +185,7 @@ for part, rdf in rdfs.items():
         ("time" + suffix, "time", 50, 0, 50), "truthhit_globaltime", "eweight")
     histos['time_zoomed'][part] = rdf.Histo1D(
         ("time_zoomed" + suffix, "time_zoomed", 50, 0, 10), "truthhit_globaltime", "eweight")
-    
+
     histos['truthhit_x_vs_truthhit_y'][part] = rdf.Histo2D(
         ("truthhit_x_vs_truthhit_y" + suffix, "truthhit_x_vs_truthhit_y", 50, -20, 20, 50, -20, 20), "truthhit_x", "truthhit_y", "eweight")
     histos['truthhit_x_vs_truthhit_z'][part] = rdf.Histo2D(
@@ -181,7 +200,6 @@ for part, rdf in rdfs.items():
         ("time_vs_truthhit_z" + suffix, "time_vs_truthhit_z", 50, 0, 20, 100, -100, 100), "truthhit_globaltime", "truthhit_z", "eweight")
     histos['time_vs_truthhit_r'][part] = rdf.Histo2D(
         ("time_vs_truthhit_r" + suffix, "time_vs_truthhit_r", 50, 0, 20, 50, 0, 30), "truthhit_globaltime", "truthhit_r", "eweight")
-
     # some event displays
     for i in evtlist:
         rdf_event = rdf.Filter(f"rdfentry_ == {i}")
@@ -197,6 +215,7 @@ for part, rdf in rdfs.items():
         histos[f"event_{i}_time_vs_truthhit_r"][part] = rdf_event.Histo2D(
             (f"event_{i}_time_vs_truthhit_r" + suffix, f"event_{i}_time_vs_truthhit_r", 50, 0, 20, 50, 0, 30), "truthhit_globaltime", "truthhit_r", "truthhit_edep")
 
+    output_file = ROOT.TFile("OP_dispersion_output.root", "RECREATE")
     for fib in ["isCoreC", "isCoreS"]:
 
         suffix = "_" + part + "_" + fib
@@ -208,13 +227,15 @@ for part, rdf in rdfs.items():
             ("OP_time_final" + suffix, "OP_time_final", 50, 5, 17), "OP_time_final", f"OP_passEnd_{fib}_normalized")
         histos["OP_time_final_vs_OP_pos_produced_z"][oppart] = rdf.Histo2D(
             ("OP_time_final_vs_OP_pos_produced_z" + suffix, "OP_time_final_vs_OP_pos_produced_z", 50, 6, 17, 50, -100, 100), "OP_time_final", "OP_pos_produced_z", f"OP_passEnd_{fib}_normalized")
-        
-        histos['OP_wavelength_produced'][oppart] = rdf.Histo1D(
-            ("OP_wavelength_produced" + suffix, "OP_wavelength_produced", 100, 300, 700), "OP_wavelength_produced", f"OP_{fib}_normalized")
-        histos['OP_wavelength_final'][oppart] = rdf.Histo1D(
-            ("OP_wavelength_final" + suffix, "OP_wavelength_final", 100, 300, 700), "OP_wavelength_final", f"OP_passEnd_{fib}_normalized")
-
-
+        #histos["OP_time_dispersion"][oppart] = rdf.Histo1D(
+            #("OP_time_dispersion" + suffix, "OP_time_dispersion", 75, 0, .3), "OP_time_dispersion", f"OP_passEnd_{fib}_normalized")
+        #histos['OP_time_dispersion'][oppart].Write()
+        for i in range(1, n_weights + 1):
+            radius_threshold = i * radius_step
+            threshold_string = str(radius_threshold).replace(".", "_")
+            histos[f"OP_time_dispersion_radius_{threshold_string}"+suffix][oppart] = rdf.Histo1D(
+                (f"OP_time_dispersion_radius_{threshold_string}" + suffix, f"OP_time_dispersion", 70, 4000, 12000), f"OP_time_dispersion", f"weight_radius_{threshold_string}_{fib}_normalized")
+            histos[f"OP_time_dispersion_radius_{threshold_string}" + suffix][oppart].Write()
 colormaps = {
     'ele_isCoreS': 2,
     'ele_isCoreC': 6,
@@ -314,7 +335,7 @@ for part in rdfs.keys():
                "Global time [ns]", -100, 100, "Production z [cm]", f"time_vs_truthhit_z_{part}", **args)
     DrawHistos([histos['time_vs_truthhit_r'][part]], [], 0, 20,
                "Global time [ns]", 0, 30, "Production r [cm]", f"time_vs_truthhit_r_{part}", **args)
-    
+
 
     # event displays
     for i in evtlist:
@@ -329,7 +350,7 @@ for part in rdfs.keys():
         ], 0, 20, "Time [ns]", -100, 100, "z [cm]", f"event_{i}_time_vs_truthhit_z_{part}", **args)
         DrawHistos([histos[f"event_{i}_time_vs_truthhit_r"][part]], [
         ], 0, 20, "Time [ns]", 0, 30, "r [cm]", f"event_{i}_time_vs_truthhit_r_{part}", **args)
-        
+
 
 args['zmax'] = 1e3
 args['zmin'] = 1e-2
@@ -344,8 +365,9 @@ args['zmin'] = 1e-4
 for oppart in histos["OP_time_produced"].keys():
     DrawHistos([histos["OP_time_final_vs_OP_pos_produced_z"][oppart]], [], 7, 14,
                "Arrival time [ns]", -100, 100, "Production z [cm]", f"OP_time_final_vs_OP_pos_produced_z_{oppart}", **args)
-    
+    # DrawHistos([histos["OP_time_dispersion"][oppart]], [], 0, .15,
+    #             "Time dispersion [ns]", 0, 200, "Number of OPs reaching the end", f"OP_time_dispersion_{oppart}", **args)
 
 
-
+output_file.Close()
 print("Done")
