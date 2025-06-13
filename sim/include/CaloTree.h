@@ -57,6 +57,12 @@ public:
 
   vector<PhotonInfo> photonData;
 
+  void addPhotonZPosition(double z); // Method to add z positions
+  void clearPhotonZPositions();     // Method to clear z positions
+
+  void AddPhotonZPosition(double zPosition);
+  void AddPhotonZPositionCherenkov(double z) { mP_z_positions_air_cherenkov.push_back(z); }
+  void AddPhotonZPositionScintillation(double z) { mP_z_positions_air_scintillation.push_back(z); }
 private:
   // private functions.
   void readMacFile(string);
@@ -234,5 +240,4 @@ private:
   int mP_nOPsCer_Cer; // number of Cerenkov photons in cherenkov fibers
   int mP_nOPsCer_Sci; // number of Cerenkov photons in scintillation fibers
 };
-
 #endif

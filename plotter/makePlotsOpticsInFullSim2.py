@@ -99,8 +99,17 @@ for part in rdfs.keys():
         .Define("capEff_isCoreC", "float(nOPs_passEnd_isCoreC) / nOPs_produced_isCoreC") \
         .Define("capEff_isCoreS", "float(nOPs_passEnd_isCoreS) / nOPs_produced_isCoreS")
 
+
+
     # energy deposit in the "center of the calorimeter"
     rdfs_new[part] = rdfs_new[part].Define("eDep_center", "Sum(truthhit_edep * (truthhit_layerNumber == 40 && truthhit_rodNumber == 45))")
+
+
+    for i,f in [(0,9), (0, 10), (0, 11), (0, 12), (0, 15)]:
+            i_str = str(i).replace(".", "_")
+            f_str = str(f).replace(".", "_")
+            rdfs[part] = rdfs[part].Define(f"eWeight_time_between_{i_str}_and_{f_str}_ns", f"OP_passEnd * ((OP_time_final - OP_time_produced) > {i} && (OP_time_final - OP_time_produced) < {f})")
+
 
 rdfs = rdfs_new
 print(rdfs["ele"].GetColumnNames())
@@ -136,9 +145,22 @@ for i in evtlist:
 for fig in figures:
     histos[fig] = OrderedDict()
 
+x_range = 0.045
+nx_bins = 100
+px_range = 1e-8
+if doOP:
+    px_range = 1e-6
+t_range = 20
 
 for part, rdf in rdfs.items():
     suffix = "_" + part
+
+
+    for i, f in [(0, 9), (0, 10), (0, 11), (0, 12), (0, 15)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part] = rdf.Histo2D(
+            (f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns" + suffix, f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns", nx_bins, -x_range, x_range, nx_bins, -x_range, x_range), "OP_pos_produced_x", "OP_pos_produced_y", f"eWeight_time_between_{i_str}_and_{f_str}_ns")
 
     histos['nOPs_produced'][part] = rdf.Histo1D(
         ("nOPs_produced" + suffix, "nOPs_produced", 50, 0, 2e3), "nOPs_produced")
@@ -319,6 +341,12 @@ args['doth2'] = True
 args['addOverflow'] = False
 args['addUnderflow'] = False
 for part in rdfs.keys():
+    for i, f in [(0, 13), (0, 8), (0, 6), (0, 5.8), (0, 5.5)]:
+        i_str = str(i).replace(".", "_")
+        f_str = str(f).replace(".", "_")
+        DrawHistos([histos[f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns"][part]], [], -x_range, x_range,
+                   "x [cm]", -x_range, x_range, "y [cm]", f"OP_pos_produced_x_vs_y_{i_str}_and_{f_str}_ns_{part}", **args)
+
     DrawHistos([histos['truthhit_x_vs_truthhit_y'][part]], [], -20, 20,
                "x [cm]", -20, 20, "y [cm]", f"truthhit_x_vs_truthhit_y_{part}", **args)
     DrawHistos([histos['truthhit_x_vs_truthhit_z'][part]], [], -20, 20,

@@ -83,14 +83,20 @@ B4bSteppingAction::~B4bSteppingAction()
 void B4bSteppingAction::UserSteppingAction(const G4Step *step)
 {
   G4Track *track = step->GetTrack();
+  static G4ParticleDefinition *opticalphoton = G4OpticalPhoton::OpticalPhotonDefinition();
+
+  // Check if the particle is an optical photon
+  if (track->GetDefinition() == opticalphoton)
+  {
+    auto preStepPoint = step->GetPreStepPoint();
+    auto postStepPoint = step->GetPostStepPoint();
+  }
+
   G4int trackID = track->GetTrackID();
 
   // Collect energy and track length step by step
 
   //   === begin of checking optical photon ===
-  static G4ParticleDefinition *opticalphoton =
-      G4OpticalPhoton::OpticalPhotonDefinition();
-
   const G4DynamicParticle *dynamicParticle = track->GetDynamicParticle();
   const G4ParticleDefinition *particleDef =
       dynamicParticle->GetParticleDefinition();
@@ -203,6 +209,7 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   }
 
   hh->accumulateEnergy(edep / GeV, caloType);
+
 
   CaloID caloid(caloType, fiberNumber, layerNumber, rodNumber, posA.z(), track->GetGlobalTime());
 
@@ -764,6 +771,7 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
   G4StepPoint *preStepPoint = step->GetPreStepPoint();
   G4StepPoint *postStepPoint = step->GetPostStepPoint();
 
+
   bool isCoreS = false;
   bool isCoreC = false;
   bool isCladS = false;
@@ -793,9 +801,8 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
     if (detname == "World" || detname == "Calorimeter")
     {
       isGoingOutside = true;
-    }
-  }
 
+    }}
   int fiberIdx = 1;
   if (isCladS || isCladC)
   {
@@ -878,13 +885,18 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
 
     // Save initial data, exit info will be filled later
     hh->photonData.push_back(photon);
+
+
   }
 
   // Check if the photon is leaving the detector to the world
   if (isGoingOutside)
   {
+
+
     G4ThreeVector exitPosition = postStepPoint->GetPosition();
     G4ThreeVector exitMomentum = track->GetMomentum();
+
 
     // Find the photon in the container and update its exit information
     for (auto &photon : hh->photonData)
@@ -905,5 +917,28 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
         break;
       }
     }
+  }
+
+  // Check if photon is entering AirVolume
+  auto preVol = preStepPoint->GetPhysicalVolume();
+  auto postVol = postStepPoint->GetPhysicalVolume();
+  if (preVol && postVol &&
+      preVol->GetName() != "AirVolume" &&
+      postVol->GetName() == "AirVolume")
+  {
+      // Calculate angle of incidence with respect to z-axis
+      G4ThreeVector dir = preStepPoint->GetMomentumDirection();
+      double cosTheta = std::abs(dir.z());
+      double theta = std::acos(cosTheta); // in radians
+
+      // Separate storage for Cherenkov and Scintillation fibers
+      if (isCoreC || isCladC) {
+          hh->AddPhotonZPositionCherenkov(theta);
+      } else if (isCoreS || isCladS) {
+          hh->AddPhotonZPositionScintillation(theta);
+      } else {
+          // If not in either, store in the general container (optional)
+          hh->AddPhotonZPosition(theta);
+      }
   }
 }
