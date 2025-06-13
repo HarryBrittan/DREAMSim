@@ -195,6 +195,7 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("ntruthhits", &m_nhitstruth);
   tree->Branch("truthhit_pid", &m_pidtruth);
   tree->Branch("truthhit_trackid", &m_trackidtruth);
+  tree->Branch("truthhit_parentid", &m_parentidtruth);
   tree->Branch("truthhit_calotype", &m_calotypetruth);
   tree->Branch("truthhit_x", &m_xtruth);
   tree->Branch("truthhit_y", &m_ytruth);
@@ -480,6 +481,7 @@ void CaloTree::clearCaloTree()
   m_nhitstruth = 0;
   m_pidtruth.clear();
   m_trackidtruth.clear();
+  m_parentidtruth.clear();
   m_calotypetruth.clear();
   m_xtruth.clear();
   m_ytruth.clear();
@@ -576,6 +578,7 @@ void CaloTree::accumulateHits(CaloHit ah)
     // larger than 1 eV
     m_pidtruth.push_back(ah.pid);
     m_trackidtruth.push_back(ah.trackid);
+    m_parentidtruth.push_back(ah.parentid);
     m_calotypetruth.push_back(ah.calotype);
     m_xtruth.push_back(ah.x);
     m_ytruth.push_back(ah.y);

@@ -147,6 +147,7 @@ private:
   int m_nhitstruth;
   vector<int> m_pidtruth;
   vector<int> m_trackidtruth;
+  vector<int> m_parentidtruth; // parent track ID
   vector<int> m_calotypetruth;
   vector<double> m_xtruth;
   vector<double> m_ytruth;

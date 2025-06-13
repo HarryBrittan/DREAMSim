@@ -16,6 +16,7 @@ public:
    CaloID caloid;
    int pid;
    int trackid;
+   int parentid;
    int calotype;
    double x;
    double y;
