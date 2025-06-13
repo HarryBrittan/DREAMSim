@@ -48,9 +48,11 @@ for ievt in range(nevts):
 # Function to add a pulse to the reconstructed histogram
 def AddPulse(h_pulse_reco, t0, pulses):
     t0_bin = h_pulse_reco.FindBin(t0)
+    peak_index = np.argmax(pulses)  # Index of the pulse peak
     for i in range(len(pulses)):
-        bin_index = t0_bin + i
-        if bin_index <= h_pulse_reco.GetNbinsX():
+        bin_index = t0_bin + (i - peak_index)  # Shift so peak aligns with t0_bin
+        bin_index = int(bin_index)  # Ensure it's a Python int
+        if 1 <= bin_index <= h_pulse_reco.GetNbinsX():
             val = h_pulse_reco.GetBinContent(bin_index)
             val += pulses[i]
             h_pulse_reco.SetBinContent(bin_index, val)
@@ -81,7 +83,7 @@ for ievt in range(nevts):  # Loop over events
             )
 
 # Process events
-nevts = tree.GetEntries()
+nevts = 20
 for ievt in range(nevts):
     tree.GetEntry(ievt)
 
