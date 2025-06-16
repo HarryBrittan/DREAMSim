@@ -2,10 +2,12 @@ import ROOT
 from collections import OrderedDict
 import numpy as np
 
-p_data = "../plotter/data/Sensl_FastOut_AveragePulse_1p8GHzBandwidth.root"
+
+#rootfiles to choose from (Sensl_FastOut_AveragePulse_1p8GHzBandwidth.root or different_pulses.root)
+p_data = "../plotter/data/different_pulses.root"
 pfile = ROOT.TFile(p_data)
 # pulse shape file per photon (?)
-h_pulse = pfile.Get("hist2")
+h_pulse = pfile.Get("h_landau_noisy")  # Change to the desired pulse shape histogram
 
 # convert pulse shape to numpy array
 # not sure which one is faster: TH1 or numpy array
@@ -83,7 +85,7 @@ for ievt in range(nevts):  # Loop over events
             )
 
 # Process events
-nevts = 20
+nevts = 40
 for ievt in range(nevts):
     tree.GetEntry(ievt)
 
