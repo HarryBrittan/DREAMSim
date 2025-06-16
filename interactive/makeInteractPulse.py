@@ -2,10 +2,12 @@ import ROOT
 from collections import OrderedDict
 import numpy as np
 
-p_data = "../plotter/data/Sensl_FastOut_AveragePulse_1p8GHzBandwidth.root"
+
+#rootfiles to choose from (Sensl_FastOut_AveragePulse_1p8GHzBandwidth.root or different_pulses.root)
+p_data = "../plotter/data/different_pulses.root"
 pfile = ROOT.TFile(p_data)
 # pulse shape file per photon (?)
-h_pulse = pfile.Get("hist2")
+h_pulse = pfile.Get("h_landau_noisy")  # Change to the desired pulse shape histogram
 
 # convert pulse shape to numpy array
 # not sure which one is faster: TH1 or numpy array
@@ -48,9 +50,11 @@ for ievt in range(nevts):
 # Function to add a pulse to the reconstructed histogram
 def AddPulse(h_pulse_reco, t0, pulses):
     t0_bin = h_pulse_reco.FindBin(t0)
+    peak_index = np.argmax(pulses)  # Index of the pulse peak
     for i in range(len(pulses)):
-        bin_index = t0_bin + i
-        if bin_index <= h_pulse_reco.GetNbinsX():
+        bin_index = t0_bin + (i - peak_index)  # Shift so peak aligns with t0_bin
+        bin_index = int(bin_index)  # Ensure it's a Python int
+        if 1 <= bin_index <= h_pulse_reco.GetNbinsX():
             val = h_pulse_reco.GetBinContent(bin_index)
             val += pulses[i]
             h_pulse_reco.SetBinContent(bin_index, val)
@@ -81,7 +85,7 @@ for ievt in range(nevts):  # Loop over events
             )
 
 # Process events
-nevts = tree.GetEntries()
+nevts = 40
 for ievt in range(nevts):
     tree.GetEntry(ievt)
 
