@@ -9,12 +9,12 @@ x = np.linspace(time_min, time_max, nBins)
 
 # 1. Gaussian pulse
 gauss_mean = 6
-gauss_sigma = 1
+gauss_sigma = 0.3
 gauss_pulse = np.exp(-0.5 * ((x - gauss_mean) / gauss_sigma) ** 2)
 
 # 2. Landau pulse (ROOT's Landau)
 landau_mean = 6
-landau_sigma = 0.5
+landau_sigma = 0.2
 landau_pulse = np.array([ROOT.TMath.Landau(xx, landau_mean, landau_sigma, True) for xx in x])
 
 # 3. Asymmetric double exponential (fast rise, slow fall)
