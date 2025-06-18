@@ -27,7 +27,7 @@ log_dir = f"{current_dir}/log"
 njobs = 10
 nevents_per_job = 100
 runnumber = 2
-particle = "mu+"
+particle = "+"
 energy_min = 10
 energy_max = 10
 jobname_prefix = "DREAM"
@@ -83,10 +83,12 @@ def generate_submission_script(particle, energy_min, energy_max):
 
 if __name__ == "__main__":
     samples = {
-        "pi+": [(10, 10.1), (20, 20.1), (30, 30.1), (50, 50.1),
-                (100, 100.1)],
-        "e+": [(10.0, 10.1), (20.0, 20.1), (30.0, 30.1), (50.0, 50.1),
-                (100.0, 100.1)],
+        # "pi+": [(10, 10.1), (20, 20.1), (30, 30.1), (50, 50.1),
+        #         (100, 100.1)],
+        # "e+": [(10.0, 10.1), (20.0, 20.1), (30.0, 30.1), (50.0, 50.1),
+        #             (100.0, 100.1)],
+        "pi+": [(5, 5.1)],
+        "e+": [(5.0, 5.1)],
     }
 
     for particle, energies in samples.items():
