@@ -33,7 +33,7 @@ nFibers = 4
 time_max = 30.0
 time_per_bin = 0.04  # use 40 ps per bin
 nBins = int(time_max / time_per_bin)
-nevts = 10
+nevts = 200
 # pulses for truth photons and reco with shapes
 histos_truth = OrderedDict()
 histos_reco = OrderedDict()
@@ -85,7 +85,7 @@ for ievt in range(nevts):  # Loop over events
             )
 
 # Process events
-nevts = 40
+nevts = 200
 for ievt in range(nevts):
     tree.GetEntry(ievt)
 
