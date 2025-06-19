@@ -78,6 +78,11 @@ print(f"Precision: {precision:.4f}")
 print(f"Recall: {recall:.4f}")
 print(f"Accuracy: {accuracy:.4f}")
 
+#make 1d_cnn_output directory if it doesn't exist
+import os
+if not os.path.exists("1d_cnn_output"):
+    os.makedirs("1d_cnn_output")
+
 # --- Plotting normalized pulses for visualization ---
 with PdfPages("1d_cnn_output/cnn_output.pdf") as pdf:
     for i in range(20):
