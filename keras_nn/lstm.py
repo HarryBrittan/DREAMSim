@@ -75,7 +75,10 @@ Y_pred = model.predict(X_test)
 # Set the range of bins to plot (adjust as needed)
 PLOT_START = 0
 PLOT_END = X_test.shape[1]  # This will be 200
-
+# make folder for lstm_output if it doesn't exist
+import os
+if not os.path.exists("lstm_output"):
+    os.makedirs("lstm_output")
 with PdfPages("lstm_output/lstm_output.pdf") as pdf:
     for i in range(20):
         plt.figure()
@@ -157,14 +160,15 @@ with PdfPages("lstm_output/performance_lstm.pdf") as perf_pdf:
 
     plt.figure()
     plt.hist2d(truth_photon_counts, nn_photon_counts, bins=[bins_truth, bins_nn], cmap='viridis')
-    plt.xlabel("Truth photon count (sum of bins, unnormalized)")
-    plt.ylabel("NN photon count (sum of peaks, unnormalized)")
-    plt.title("Photon count correlation: NN vs Truth (unnormalized, integer bins)")
+    plt.xlabel("Truth photon count, (unnormalized sum of bins)")
+    plt.ylabel("NN photon count, (sum of peaks, unnormalized)")
+    plt.title("Photon count correlation: NN vs Truth (Unnormalized, integer bins)")
     plt.colorbar(label="Counts")
-    plt.plot([0, max_truth], [0, max_truth], 'r--', label="y=x")
+    plt.plot([0, max(max_truth, max_nn)], [0, max(max_truth, max_nn)], 'r--', label="y=x")
     plt.legend()
-    perf_pdf.savefig()
-    plt.close()
+    plt.tight_layout()
+    plt.show()
+
 
     # Flatten arrays for global metrics
     y_true_flat = Y_test.flatten()
@@ -190,7 +194,7 @@ with PdfPages("lstm_output/performance_lstm.pdf") as perf_pdf:
     plt.close()
 
     # --- ROC Curve ---
-    fpr, tpr, _ = roc_curve(y_true_bin, y_pred_flat)
+    fpr, tpr, _ = roc_curve(y_true_bin, y_pred_bin)
     roc_auc = auc(fpr, tpr)
     plt.figure()
     plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
@@ -204,8 +208,8 @@ with PdfPages("lstm_output/performance_lstm.pdf") as perf_pdf:
 
 
     # --- Precision-Recall Curve ---
-    precision_curve, recall_curve, _ = precision_recall_curve(y_true_bin, y_pred_flat)
-    avg_precision = average_precision_score(y_true_bin, y_pred_flat)
+    precision_curve, recall_curve, _ = precision_recall_curve(y_true_bin, y_pred_bin)
+    avg_precision = average_precision_score(y_true_bin, y_pred_bin)
     plt.figure()
     plt.plot(recall_curve, precision_curve, color='blue', lw=2, label=f'AP = {avg_precision:.2f}')
     plt.xlabel('Recall')
