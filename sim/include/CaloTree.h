@@ -237,7 +237,9 @@ private:
   vector<double> mP_pol_x;
   vector<double> mP_pol_y;
   vector<double> mP_pol_z;
-
+  vector<double> mP_z_positions_air_cherenkov; // Z positions of photons in air for Cherenkov fibers
+  vector<double> mP_z_positions_air_scintillation; // Z positions of photons in air for Scintillation fibers
+  vector<double> mP_z_positions_air; // Z positions of photons in air (general)
   int mP_nOPsCer;     // number of Cerenkov photons
   int mP_nOPsCer_Cer; // number of Cerenkov photons in cherenkov fibers
   int mP_nOPsCer_Sci; // number of Cerenkov photons in scintillation fibers
