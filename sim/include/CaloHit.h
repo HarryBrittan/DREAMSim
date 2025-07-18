@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CaloID.h"
+#include "G4String.hh"
 
 class CaloHit
 {
@@ -28,6 +29,7 @@ public:
    double edepNonIon;
    double edepInv;
    double edepbirk;
+   G4String process;
    double ncer;    // number of cerenkov photons
    double ncercap; // number of cerenkov photons
    int layerNumber;

@@ -94,6 +94,12 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
 
   G4int trackID = track->GetTrackID();
 
+  const G4VProcess* process = step->GetPostStepPoint()->GetProcessDefinedStep();
+  G4String processName = "Unknown";
+  if (process) {
+     processName = process->GetProcessName();
+  }
+    
   // Collect energy and track length step by step
 
   //   === begin of checking optical photon ===
@@ -247,6 +253,7 @@ void B4bSteppingAction::UserSteppingAction(const G4Step *step)
   aHit.edep = edep / GeV;             //  in GeV
   aHit.edepNonIon = edepNonIon / GeV; // in GeV
   aHit.edepbirk = edep * birks / GeV;
+  aHit.process = processName;
   if (ncer.size() > 0)
   {
     aHit.ncer = ncer[0];
