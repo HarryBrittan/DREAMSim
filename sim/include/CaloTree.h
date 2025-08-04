@@ -46,7 +46,7 @@ public:
   void accumulateHits(CaloHit aHit);
   void accumulateEnergy(double eleak, int type);
   void accumulateOPsCer(bool isCoreC = 0, int nOPs = 1);
-  void saveBeamXYZE(string, int, float, float, float, float);
+  void saveBeamXYZE(string, int, float, float, float, float, float, float, float); //added momentum direction
 
   // for histogrming...
   std::string title;
@@ -80,7 +80,7 @@ private:
 
   string beamType;
   int beamID;
-  float beamX, beamY, beamZ, beamE;
+  float beamX, beamY, beamZ, beamE, beamPX, beamPY, beamPZ;
   //
   string runConfig;
   int runNumber;
@@ -147,6 +147,9 @@ private:
   float m_beamY;
   float m_beamZ;
   float m_beamE;
+  float m_beamPX;
+  float m_beamPY;
+  float m_beamPZ;
   string m_beamType;
 
   // truth hit variables (no sipm or time or position smearing applied)

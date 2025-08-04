@@ -5,6 +5,8 @@ submissiontext = """#!/bin/bash
 #SBATCH -o LOGDIR/%x.%j.out
 #SBATCH -e LOGDIR/%x.%j.err
 #SBATCH -p nocona
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=hbrittan@ttu.edu
 """
 
 singularity_cmd = "singularity run --cleanenv --bind /lustre:/lustre /lustre/work/yofeng/SimulationEnv/alma9forgeant4_v1_sbox/"
@@ -17,6 +19,7 @@ import os
 current_dir = os.getcwd()
 print("Current directory: ", current_dir)
 
+output_dir = "/lustre/work/hbrittan/dreamsimoutputs/2025_06_18"
 output_dir = "/lustre/work/hbrittan/dreamsimoutputs/2025_06_18/mu_5GeV"
 
 #
@@ -30,7 +33,7 @@ runnumber = 1
 particle = "mu+"
 energy_min = 100
 energy_max = 100.1
-jobname_prefix = "dreamsim"
+jobname_prefix = "dream_z37"
 
 
 if not os.path.exists(log_dir):

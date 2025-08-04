@@ -4,7 +4,7 @@ import time
 import ROOT
 
 # Parameters
-N_EVENTS = 50000
+N_EVENTS = 100000
 N_BINS = 200  # Number of time bins per event
 NOISE_STD = 0.05  # Standard deviation of noise
 MAX_HITS_PER_EVENT = 4  # Max number of true hits per event
@@ -50,7 +50,7 @@ truth_hits = np.array(truth_hits, dtype=np.float32)
 convoluted_pulses = np.array(convoluted_pulses, dtype=np.float32)
 
 # Save to HDF5
-with h5py.File("pulse_data.h5", "w") as f:
+with h5py.File("pulse_data_100000evt.h5", "w") as f:
     f.create_dataset("truth", data=truth_hits)
     f.create_dataset("convoluted", data=convoluted_pulses)
 

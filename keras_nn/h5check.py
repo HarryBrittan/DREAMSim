@@ -2,7 +2,7 @@ import h5py
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-with h5py.File("deconvolution_data.h5", "r") as f, PdfPages("pulse_comparison.pdf") as pdf:
+with h5py.File("data/pulse_data.h5", "r") as f, PdfPages("pulse_comparison.pdf") as pdf:
     n_events = f["convoluted"].shape[0]
     num_events = min(100, n_events)  # Save up to 100 events
     print(f"Number of events in file: {n_events}")

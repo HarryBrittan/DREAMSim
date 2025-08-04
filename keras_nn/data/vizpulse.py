@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 # Load the generated pulses
-with h5py.File("sim_pulse_data.h5", "r") as f:
+with h5py.File("mu20000evt_0.5shift_sim_pulse_data.h5", "r") as f:
     truth = np.array(f["truth"])
     convoluted = np.array(f["convoluted"])
 
 # Plot a few random examples and save to PDF
-n_show = 50  # Number of pulses to show
+n_show = 100  # Number of pulses to show
 indices = np.random.choice(len(truth), n_show, replace=False)
 
 with PdfPages("pulse_examples.pdf") as pdf:

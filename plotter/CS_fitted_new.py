@@ -39,7 +39,7 @@ def fit_and_draw_histogram(hist, output_png):
     canvas = ROOT.TCanvas("canvas", "PCA Fit Result", 800, 600)
     hist.Draw("COLZ")
     # Draw the contours on top
-    hist.SetContour(5)  # Number of contour levels (adjust as needed)
+    hist.SetContour(8)  # Number of contour levels (adjust as needed)
     hist.Draw("CONT3 SAME")
     # Draw the major axis (PCA fit)
     x_min = hist.GetXaxis().GetXmin()

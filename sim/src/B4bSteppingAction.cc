@@ -858,12 +858,23 @@ void B4bSteppingAction::fillOPInfo(const G4Step *step, bool verbose)
     // std::cout << "Stepping Action:  not optical photon, killing track" << std::endl;
     track->SetTrackStatus(fStopAndKill);
     return;
-  }
+  // }
   // if (fabs(x) > 1.0 || fabs(y) > 1.0)
   //{
   //   std::cout << "photon x" << x << "  y " << y << "  z " << track->GetPosition().z() / cm << " fiber Number " << fiberNumber << "  hole Number " << holeNumber << "  rod Number " << rodNumber << "  layer Number " << layerNumber << " isGoingOutside " << isGoingOutside << " isCoreS " << isCoreS << " isCladS " << isCladS << "isCoreC " << isCoreC << " isCladC " << isCladC << " preStep volume " << preStepPoint->GetTouchableHandle()->GetVolume()->GetName() << " postStep volume " << postStepPoint->GetTouchableHandle()->GetVolume()->GetName() << std::endl;
   // }
 
+  // looking at param file for whether photon processes are true or false
+  if (track->GetParticleDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
+  {
+      bool photonProcesses = false;
+    if (photonProcesses==false)
+    {
+      // std::cout << "Stepping Action:  photon processes are false, killing track" << std::endl;
+      track->SetTrackStatus(fStopAndKill);
+      return;
+    }
+  }
   // Check if the photon is just created.
   if (track->GetCurrentStepNumber() == 1)
   {

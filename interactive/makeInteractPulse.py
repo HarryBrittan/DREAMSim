@@ -18,7 +18,7 @@ for i in range(h_pulse.GetNbinsX()):
 print("pulses: ", pulses)
 
 try:
-    with open("root_file_name.txt", "r") as f:
+    with open("/home/hbrittan/caloX/myDREAMSim/DREAMSim/interactive/root_file_name.txt", "r") as f:
         sim_data = f.read().strip()
     ifile = ROOT.TFile(sim_data)
     tree = ifile.Get("tree")
@@ -84,9 +84,14 @@ for ievt in range(nevts):  # Loop over events
                 nBins, 0, time_max
             )
 
+print("Starting event processing...")
+
 # Process events
 nevts = 500
 for ievt in range(nevts):
+    if ievt % 50 == 0:
+        print(f"Processing event {ievt}/{nevts}...")
+
     tree.GetEntry(ievt)
 
     # Check if the branch `OP_time_final` has any entries for the event
@@ -143,7 +148,13 @@ for ievt in range(nevts):
             )
         AddPulse(histos_reco[bin_key], t, pulses)
 
+        if j % 1000 == 0 and j > 0:
+            print(f"  Processed {j}/{nPhotons} photons in event {ievt}")
+
+print("Finished processing all events.")
+
 # Save only histograms with entries
+print("Saving histograms to output.root...")
 output_file = ROOT.TFile("output.root", "RECREATE")
 for bin_key, hist in histos_truth.items():
     if hist.GetEntries() > 0:  # Save only if the histogram has entries
@@ -152,5 +163,6 @@ for bin_key, hist in histos_reco.items():
     if hist.GetEntries() > 0:  # Save only if the histogram has entries
         hist.Write()
 output_file.Close()
+print("Histograms saved successfully.")
 
 

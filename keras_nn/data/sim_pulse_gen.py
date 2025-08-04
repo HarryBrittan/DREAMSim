@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 import sys
 
+print("Loading pulse shape from ROOT file...")
 # Load pulse shape from ROOT file
 p_data = "../../plotter/data/different_pulses.root"
 pfile = ROOT.TFile(p_data)
@@ -16,9 +17,10 @@ for i in range(h_pulse.GetNbinsX()):
 pulse_len = len(pulses)
 pulse_peak = np.argmax(pulses)
 
+print("Reading ROOT file names from text file...")
 # Read all ROOT file names from the text file (one per line)
 try:
-    with open("/home/harryb/HEP/g4/calox/myDREAMSim/DREAMSim/interactive/root_file_name.txt", "r") as f:
+    with open("../../interactive/root_file_name.txt", "r") as f:
         root_files = [line.strip() for line in f if line.strip()]
     if not root_files:
         print("Error: No ROOT files listed in root_file_name.txt.")
@@ -50,8 +52,11 @@ NOISE_STD = 0.05
 truth_list = []
 convoluted_list = []
 
+print(f"Starting event loop over {nevts} events...")
 for ievt in range(nevts):
     tree.GetEntry(ievt)
+    if ievt % 50 == 0:
+        print(f"  Processing event {ievt+1}/{nevts}...")
     # Prepare 2D arrays for this event (flattened for storage)
     for ix in range(n_xbins):
         for iy in range(n_ybins):
@@ -95,15 +100,17 @@ for ievt in range(nevts):
                 convoluted_list.append(convoluted)
 
 # Convert to arrays
+print("Converting lists to numpy arrays...")
 truth_arr = np.array(truth_list, dtype=np.float32)
 convoluted_arr = np.array(convoluted_list, dtype=np.float32)
 
 # Save to HDF5
+print("Saving arrays to mu20000evt_sim_pulse_data.h5...")
 with h5py.File("mu20000evt_sim_pulse_data.h5", "w") as f:
     f.create_dataset("truth", data=truth_arr)
     f.create_dataset("convoluted", data=convoluted_arr)
 
-print(f"Saved {truth_arr.shape[0]} samples to mu20000evt_sim_pulse_data.h5")
+print(f"Saved {truth_arr.shape[1]} samples to mu20000evt_sim_pulse_data.h5")
 
 
 

@@ -190,7 +190,7 @@ void B4PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
     // cout<<"B4PrimaryGeneratorAction::GeneratePrimaries set a particle..."<<endl;
     // cout<<"   (x,y,z,en)="<<x<<",  "<<y<<",  "<<z<<",  "<<en<<",  "<<ptype<<endl;
     int pdgid = particleDefinition->GetPDGEncoding();
-    hh->saveBeamXYZE(ptype, pdgid, x, y, z, en);
+    hh->saveBeamXYZE(ptype, pdgid, x, y, z, en, px, py, pz);
   }
 }
 

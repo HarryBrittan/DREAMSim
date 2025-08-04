@@ -191,6 +191,9 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   tree->Branch("beamE", &m_beamE);
   tree->Branch("beamID", &m_beamID);
   tree->Branch("beamType", &m_beamType);
+  tree->Branch("beamPX", &m_beamPX);
+  tree->Branch("beamPY", &m_beamPY);
+  tree->Branch("beamPZ", &m_beamPZ);
 
   tree->Branch("ntruthhits", &m_nhitstruth);
   tree->Branch("truthhit_pid", &m_pidtruth);
@@ -326,6 +329,9 @@ void CaloTree::EndEvent()
     m_beamX = beamX;
     m_beamY = beamY;
     m_beamZ = beamZ;
+    m_beamPX = beamPX;
+    m_beamPY = beamPY;
+    m_beamPZ = beamPZ;
     m_beamE = beamE;
     m_beamID = beamID;
     m_beamType = beamType;
@@ -447,7 +453,7 @@ void CaloTree::EndJob()
 }
 // ########################################################################
 void CaloTree::saveBeamXYZE(string ptype, int pdgid, float x, float y, float z,
-                            float en)
+                            float en, float px, float py, float pz)
 {
   beamType = ptype; // sting pi+. e+ mu+ etc.
   beamID = pdgid;
@@ -455,6 +461,9 @@ void CaloTree::saveBeamXYZE(string ptype, int pdgid, float x, float y, float z,
   beamY = y;
   beamZ = z;
   beamE = en; // in MeV
+  beamPX = px; // in MeV
+  beamPY = py; // in MeV
+  beamPZ = pz; // in MeV
 }
 
 // ########################################################################
@@ -478,6 +487,9 @@ void CaloTree::clearCaloTree()
   m_beamY = 0.0;
   m_beamZ = 0.0;
   m_beamE = 0.0;
+  m_beamPX = 0.0;
+  m_beamPY = 0.0;
+  m_beamPZ = 0.0;
   m_beamID = 0;
   m_beamType = " ";
 
