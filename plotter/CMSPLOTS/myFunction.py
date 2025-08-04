@@ -23,7 +23,7 @@ def DumpHist(hist):
     # dump the number of events in histogram
     print("histogram %s with %d bins" % (hist.GetName, hist.GetNbinsX()))
     for ibin in range(0, hist.GetNbinsX()+2):
-        print(" %d bin with %.2f events" % (ibin, hist.GetBinContent(ibin)))
+        print(" %d bin with %.3f events" % (ibin, hist.GetBinContent(ibin)))
 
 
 def PrepareHisto(myfile, listhistos, printlist=True):
@@ -257,24 +257,24 @@ def AddOverflows(hinput, dolastbin=True):
         # do the AddOverflowsTH1 for all the histograms in THStack
         hlist = list(hinput.GetHists())
         list(map(AddOverflowsTH1, hlist, [dolastbin]*len(hlist)))
-    
+
     else:
         print("input must be a ROOT.TH1 or ROOT.THStack for Over/Underflows")
-        
+
 def IncludeOverflow2D(h2, doUnderflow=False):
     """
     this might not work for one th2 with only one bin in one direction
     """
     nbinsX = h2.GetNbinsX()
     nbinsY = h2.GetNbinsY()
-    
+
     for ix in range(1, nbinsX+1):
         h2 = CombineOneBin2D(h2, ix, nbinsY, ix, nbinsY+1)
     for iy in range(1, nbinsY+1):
         h2 = CombineOneBin2D(h2, nbinsX, iy, nbinsX+1, iy)
     # correct the corner
     h2 = CombineOneBin2D(h2, nbinsX, nbinsY, nbinsX+1, nbinsY+1)
-        
+
     if doUnderflow:
         for ix in range(1, nbinsX+1):
             h2 = CombineOneBin2D(h2, ix, 1, ix, 0)
@@ -296,12 +296,12 @@ def Ratio2Diff(hratio, inpercent=True):
         hratio.SetBinContent(ibin, hratio.GetBinContent(ibin)-1.0)
     if inpercent:
         hratio.Scale(100.0)
-        
+
 
 def MultiplyH2(h1, h2):
     assert h1.GetNbinsX() == h2.GetNbinsX(), "h1 and h2 have different number of bins in x"
     assert h1.GetNbinsY() == h2.GetNbinsY(), "h1 and h2 have different number of bins in y"
-    
+
     for ix in range(1, h1.GetNbinsX()+1):
         for iy in range(1, h1.GetNbinsY()+1):
             val1 = h1.GetBinContent(ix, iy)
@@ -336,7 +336,7 @@ def PositiveProtection2D(h2):
                 print("WARNING: negative bin content found, set to 0 for bin", ix, iy, h2.GetBinContent(ix, iy), " in histogram ", h2.GetName())
                 h2.SetBinContent(ix, iy, 0)
                 h2.SetBinError(ix, iy, 0)
-                
+
 def IntegralAndError2D(h2s):
     if isinstance(h2s, ROOT.TH2):
         h2s = [h2s]
@@ -360,7 +360,7 @@ def CombineOneBin2D(h, ix, iy, jx, jy):
     h.SetBinContent(jx, jy, 0)
     h.SetBinError(jx, jy, 0)
     return h
-    
+
 def GetRatioPanel(hs):
     """
     build the ratio error bars used for THStack
@@ -405,10 +405,10 @@ def SymmetrizeHisto(h, hSysUp, hname = "hSysDown", useRatio = False):
         if useRatio:
             val_down = val_c*val_c / val_up
         else:
-            val_down = 2*val_c - val_up    
+            val_down = 2*val_c - val_up
         hSysDown.SetBinContent(ibin, val_down)
     return hSysDown
-        
+
 
 def TH2ToTH1s(h2, projY = False, label = "X"):
     """
@@ -456,12 +456,12 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
         legendoptions = []
     if ratiooptions is None:
         ratiooptions = []
-        
+
     # set the tdr style
     tdrstyle.setTDRStyle()
     # not sure why need this...
     ROOT.gStyle.SetErrorX(0.5)
-    
+
     ROOT.gStyle.SetPalette(1)
     ROOT.gStyle.SetPaintTextFormat(".3f")
 
@@ -482,7 +482,7 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
     else:
         # default val
         ROOT.TGaxis.SetMaxDigits(5)
-        
+
     if ymax == None:
         ymax = max([h.GetMaximum() for h in myhistos]) * 1.25
     if ymin == None:
@@ -497,17 +497,17 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
     npads = 1 + showratio + showpull
 
     if npads == 2:
-        canvas = ROOT.TCanvas("c2"+outputname, "c2", 50, 50, W, 600)
+        canvas = ROOT.TCanvas("c2"+str(outputname), "c2", 50, 50, W, 600)
         padsize1 = float(padsize[0])/(padsize[0]+padsize[1])
         padsize2 = float(padsize[1])/(padsize[0]+padsize[1])
         padsize3 = 0.
     elif npads == 1:
-        canvas = ROOT.TCanvas("c2"+outputname, "c2", 50, 50, W, 600)
+        canvas = ROOT.TCanvas("c2"+str(outputname), "c2", 50, 50, W, 600)
         canvas.SetGrid(setGridx, setGridy)
         canvas.SetTicks(1, 1)
         padsize1 = 1.0
         if doth2:
-            canvas.SetRightMargin(0.14)
+            canvas.SetRightMargin(0.2)
         padsize2 = 0.
         padsize3 = 0.
         canvas.cd()
@@ -533,8 +533,8 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
         canvas.SetTopMargin(0.06)
 
     if npads == 2:
-        pad1 = ROOT.TPad("pad1" + outputname, "pad1", 0, padsize2, 1, 1)
-        pad2 = ROOT.TPad("pad2" + outputname, "pad1", 0, 0, 1, padsize2)
+        pad1 = ROOT.TPad("pad1" + str(outputname), "pad1", 0, padsize2, 1, 1)
+        pad2 = ROOT.TPad("pad2" +str(outputname), "pad1", 0, 0, 1, padsize2)
         pad1.SetTopMargin(0.06/padsize1)
         pad1.SetBottomMargin(0.012/padsize1)
         pad1.SetLeftMargin(0.15 * (600.0)/W)
@@ -547,9 +547,9 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
         pad2.Draw()
 
     if npads == 3:
-        pad1 = ROOT.TPad("pad1" + outputname, "pad1", 0, 1-padsize1, 1, 1)
-        pad2 = ROOT.TPad("pad2" + outputname, "pad2", 0, padsize3, 1, 1-padsize1)
-        pad3 = ROOT.TPad("pad3" + outputname, "pad3", 0, 0.,   1, padsize3)
+        pad1 = ROOT.TPad("pad1" + str(outputname), "pad1", 0, 1-padsize1, 1, 1)
+        pad2 = ROOT.TPad("pad2" + str(outputname), "pad2", 0, padsize3, 1, 1-padsize1)
+        pad3 = ROOT.TPad("pad3" + str(outputname), "pad3", 0, 0.,   1, padsize3)
         pad1.SetTopMargin(0.06/(padsize1+padsize3))
         pad1.SetBottomMargin(0.012/padsize1)
         pad1.SetLeftMargin(0.15 * (600.0)/W)
@@ -577,11 +577,11 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
             pad1.SetLogx()
 
     if not doth2:
-        h1 = ROOT.TH1F("h1" + outputname, "h1", 80, xmin, xmax)
+        h1 = ROOT.TH1F("h1" + str(outputname), "h1", 80, float(xmin), float(xmax))
         h1.SetMinimum(ymin)
-        h1.SetMaximum(ymax)    
+        h1.SetMaximum(ymax)
     else:
-        h1 = ROOT.TH2F("h2" + outputname, "h2", 80, xmin, xmax, 80, ymin, ymax)
+        h1 = ROOT.TH2F("h2" + str(outputname), "h2", 80, float(xmin), float(xmax), 80, float(ymin), float(ymax))
         h1.GetZaxis().SetLabelSize(0.03)
         if zmin!=None and zmax!=None:
             #print(f"configuring z range to {zmin}, {zmax}")
@@ -635,10 +635,10 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
     legend.SetTextFont(42)
     legend.SetFillColor(0)
     legend.SetNColumns(legendNCols)
-    if lheader and lheader != "":
-        #legend.SetHeader(lheader, "C")
+    if isinstance(lheader, str) and lheader.strip() != "":
         legend.SetHeader(lheader)
-        
+
+
     if extralabels:
         exlegend = ROOT.TLegend(x0_l-exlegoffset, y0_l, x0_l, y1_l)
         exlegend.SetBorderSize(0)
@@ -656,7 +656,7 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
         ihcolone = ihisto.Clone("%s_Clone" % ihisto.GetName())
         # ihcolone.SetDirectory(0)
         myhistos_clone.append(ihcolone)
-        
+
     if drawashist:
         drawoptions = ["HIST" for i in range(len(myhistos_clone))]
         legendoptions = ['L' for i in range(len(myhistos_clone))]
@@ -703,11 +703,11 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
             legendoptions[idx] = "F"
         myhistos_clone[idx].Draw(
             " ".join(filter(None, [drawoptions[idx], "same"])))
-        
+
         exlen = 0
         if extralabels:
             exlen = len(extralabels)
-            
+
         if ileg < exlen:
             exlegend.AddEntry(myhistos_clone[idx], " ", legendoptions[idx])
             ileg += 1
@@ -725,10 +725,10 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
                 legend.AddEntry(myhistos_clone[idx], str(
                     mylabels[ileg-exlen]), legendoptions[idx])
                 ileg += 1
-                
+
     # print("draw options ", drawoptions)
     # print("legend options ", legendoptions)
-    
+
     if showratio and hratiopanel:
         legend.AddEntry(hratiopanel, "Uncertainty", "F")
 
@@ -832,7 +832,7 @@ def DrawHistos(myhistos, mylabels, xmin, xmax, xlabel, ymin, ymax, ylabel, outpu
         if dologx:
             pad2.SetLogx()
 
-        h2 = ROOT.TH1F("h2", "h2", 80, xmin, xmax)
+        h2 = ROOT.TH1F("h2", "h2", 80, float(xmin), float(xmax))
         h2.GetXaxis().SetTitleSize(0.050/(padsize2+0.3*padsize3))
         h2.GetXaxis().SetLabelSize(0.045/(padsize2+0.3*padsize3))
         h2.GetYaxis().SetTitleSize(0.050/(padsize2+0.3*padsize3))

@@ -17,15 +17,15 @@ import os
 current_dir = os.getcwd()
 print("Current directory: ", current_dir)
 
-output_dir = "/lustre/work/hbrittan/dreamsimoutputs/2025_06_13"
+output_dir = "/lustre/work/hbrittan/dreamsimoutputs/2025_06_18/mu_5GeV"
 
 #
 # change from here
 #
-sim_build_dir = f"{current_dir}/../sim/buildfull"
+sim_build_dir = f"{current_dir}/../sim/buildfullopex"
 log_dir = f"{current_dir}/log"
 njobs = 10
-nevents_per_job = 1000
+nevents_per_job = 10000
 runnumber = 1
 particle = "mu+"
 energy_min = 100
@@ -87,8 +87,7 @@ if __name__ == "__main__":
         #         (100, 100.1)],
         # "e+": [(10.0, 10.1), (20.0, 20.1), (30.0, 30.1), (50.0, 50.1),
         #             (100.0, 100.1)],
-        "pi+": [(5, 5.1)],
-        "e+": [(5.0, 5.1)],
+        "mu+": [(5.0, 5.1)],
     }
     for particle, energies in samples.items():
        for energy_min, energy_max in energies:
