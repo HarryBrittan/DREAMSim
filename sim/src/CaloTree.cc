@@ -452,7 +452,7 @@ void CaloTree::EndJob()
   fout->Close();
 }
 // ########################################################################
-void CaloTree::saveBeamXYZE(string ptype, int pdgid, float x, float y, float z,
+void CaloTree::saveBeamXYZEPxPyPz(string ptype, int pdgid, float x, float y, float z,
                             float en, float px, float py, float pz)
 {
   beamType = ptype; // sting pi+. e+ mu+ etc.
