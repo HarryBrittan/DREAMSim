@@ -74,7 +74,7 @@ private:
 
   string beamType;
   int beamID;
-  float beamX, beamY, beamZ, beamE;
+  float beamX, beamY, beamZ, beamE, beamPX, beamPY, beamPZ;
   //
   string runConfig;
   int runNumber;
@@ -85,6 +85,7 @@ private:
   bool createNtuple;
 
   bool saveTruthHits;
+  bool isMuon;
 
   // hit data in csv file
   map<string, int> csvEvents; // number of events to be written to csv file.

@@ -74,6 +74,7 @@ CaloTree::CaloTree(string macFileName, int argc, char **argv)
   eventCountsALL = 0;
 
   saveTruthHits = false;
+  isMuon = false; // default is not muon
   if (getParamS("saveTruthHits").compare(0, 4, "true") == 0)
     saveTruthHits = true;
 
@@ -452,17 +453,19 @@ void CaloTree::EndJob()
 }
 // ########################################################################
 void CaloTree::saveBeamXYZE(string ptype, int pdgid, float x, float y, float z,
-                            float en)
+                            float en, float px, float py, float pz)
 {
   beamType = ptype; // sting pi+. e+ mu+ etc.
   beamID = pdgid;
   beamX = x; // in mm
   beamY = y;
   beamZ = z;
-  beamE = en; in MeV
+  beamE = en;
   beamPX = px;
   beamPY = py;
   beamPZ = pz;
+
+  isMuon = (abs(pdgid) == 13);
 }
 
 // ########################################################################
@@ -491,6 +494,7 @@ void CaloTree::clearCaloTree()
   m_beamE = 0.0;
   m_beamID = 0;
   m_beamType = " ";
+  isMuon = false;
 
   m_nhitstruth = 0;
   m_pidtruth.clear();
@@ -585,10 +589,11 @@ void CaloTree::clearCaloTree()
   mP_nOPsCer_Sci = 0;
 }
 
+
 // ########################################################################
 void CaloTree::accumulateHits(CaloHit ah)
 {
-  if (saveTruthHits && ah.calotype >= 1 && ah.edep >= 1.0e-6)
+  if (saveTruthHits && ah.edep >= 1.0e-6 && (ah.calotype > 1 || isMuon && ah.calotype == 1))
   {
     // save the truth hit in the scintillating and cherenkov fibers.
     // larger than 1 eV
