@@ -576,7 +576,7 @@ void CaloTree::clearCaloTree()
 // ########################################################################
 void CaloTree::accumulateHits(CaloHit ah)
 {
-  if (saveTruthHits && ah.calotype > 1 && ah.edep >= 1.0e-6)
+  if (saveTruthHits && ah.calotype >= 1 && ah.edep >= 1.0e-6)
   {
     // save the truth hit in the scintillating and cherenkov fibers.
     // larger than 1 eV
